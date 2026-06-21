@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Musée du Brainrot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg1:#241552; --bg2:#3b1d7a; --bg3:#7a2a8f;
+  --card:#ffffff; --ink:#241a4d; --ink-soft:#7a72a3;
+  /* couleurs de rareté façon jeu */
+  --c-commun:#9aa3b2; --c-rare:#3da5ff; --c-epique:#b15cff;
+  --c-legendaire:#ffb01f; --c-mythique:#ff4d6d;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Nunito',sans-serif;color:#fff;min-height:100vh;
+  background:linear-gradient(160deg,var(--bg1),var(--bg2) 55%,var(--bg3));
+  background-attachment:fixed;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+/* taches de couleur floues en fond pour l'ambiance */
+body::before,body::after{content:"";position:fixed;border-radius:50%;filter:blur(80px);opacity:.5;z-index:0;pointer-events:none}
+body::before{width:380px;height:380px;background:#ff4d9d;top:-80px;left:-90px}
+body::after{width:420px;height:420px;background:#3da5ff;bottom:-120px;right:-100px}
+.wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 18px}
+
+/* ---------- HEADER ---------- */
+header{text-align:center;padding:50px 18px 18px;position:relative;z-index:1}
+.logo{font-size:54px;display:inline-block;animation:wobble 3s ease-in-out infinite}
+@keyframes wobble{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
+h1{
+  font-family:'Fredoka';font-weight:700;font-size:clamp(34px,8vw,66px);line-height:.95;
+  letter-spacing:.01em;margin:6px 0 2px;
+  background:linear-gradient(90deg,#ffd84d,#ff7eb3,#7afcff,#ffd84d);
+  background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:shine 6s linear infinite;
+  text-shadow:0 6px 0 rgba(0,0,0,.12);
+}
+@keyframes shine{to{background-position:300% 0}}
+.tagline{font-family:'Fredoka';font-weight:500;font-size:clamp(15px,3vw,20px);color:#e9d9ff;margin-top:8px}
+.count-pill{
+  display:inline-block;margin-top:16px;background:rgba(255,255,255,.16);
+  border:2px solid rgba(255,255,255,.35);border-radius:999px;
+  padding:8px 18px;font-family:'Fredoka';font-weight:600;font-size:15px;
+}
+
+/* ---------- CONTROLS ---------- */
+.controls{position:sticky;top:0;z-index:30;padding:14px 18px 16px;margin:10px 0 6px;
+  background:linear-gradient(180deg,var(--bg1) 72%,transparent)}
+.controls-inner{max-width:1180px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center}
+.search{flex:1 1 220px;max-width:320px;display:flex;align-items:center;gap:8px;
+  background:#fff;border-radius:999px;padding:10px 16px;color:var(--ink);box-shadow:0 6px 16px rgba(0,0,0,.2)}
+.search input{background:none;border:none;outline:none;color:var(--ink);font-family:'Nunito';font-weight:700;font-size:16px;width:100%}
+.search input::placeholder{color:#b3adcf}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.chip{font-family:'Fredoka';font-weight:600;font-size:14px;padding:8px 16px;border-radius:999px;
+  cursor:pointer;border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;
+  transition:transform .12s,background .15s}
+.chip:hover{transform:translateY(-2px);background:rgba(255,255,255,.2)}
+.chip.active{background:#fff;color:var(--ink);border-color:#fff}
+/* raretés colorées sur les chips actifs */
+#chips .chip[data-f="commun"].active{background:var(--c-commun);border-color:var(--c-commun);color:#fff}
+#chips .chip[data-f="rare"].active{background:var(--c-rare);border-color:var(--c-rare);color:#fff}
+#chips .chip[data-f="epique"].active{background:var(--c-epique);border-color:var(--c-epique);color:#fff}
+#chips .chip[data-f="legendaire"].active{background:var(--c-legendaire);border-color:var(--c-legendaire);color:#5a3d00}
+#chips .chip[data-f="mythique"].active{background:var(--c-mythique);border-color:var(--c-mythique);color:#fff}
+.add-btn{font-family:'Fredoka';font-weight:600;font-size:14px;padding:9px 18px;border-radius:999px;
+  cursor:pointer;border:none;color:#fff;background:linear-gradient(90deg,#ff6ec4,#ff9a5a);
+  box-shadow:0 6px 16px rgba(255,110,196,.4);transition:transform .12s}
+.add-btn:hover{transform:translateY(-2px) scale(1.03)}
+
+/* deuxième rangée : comptes */
+.controls-coll{margin-top:10px;gap:8px}
+.coll-label{font-family:'Fredoka';font-weight:600;font-size:14px;color:#e9d9ff;margin-right:2px}
+.chip-acc{display:inline-flex;flex-direction:column;align-items:flex-start;text-align:left;
+  line-height:1.1;padding:7px 14px 7px 28px!important;position:relative}
+.chip-acc::before{content:"";position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  width:11px;height:11px;border-radius:50%;background:var(--c,#aaa);box-shadow:0 0 0 2px rgba(255,255,255,.5)}
+.ca-top{font-size:11px;opacity:.8;font-weight:500}
+.ca-name{font-size:14px;font-weight:700}
+#chipsColl .chip.active{background:var(--c,#fff);border-color:var(--c,#fff);color:#fff}
+
+/* ---------- GALLERY ---------- */
+.count{display:none}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:22px;padding:8px 0 70px}
+.card{
+  position:relative;background:var(--card);border-radius:22px;cursor:pointer;overflow:hidden;
+  border:4px solid var(--rc);padding-bottom:14px;
+  box-shadow:0 10px 26px rgba(0,0,0,.28), 0 0 0 0 var(--rc);
+  transition:transform .16s cubic-bezier(.3,1.4,.5,1), box-shadow .2s;
+  animation:pop .5s cubic-bezier(.2,1.3,.4,1) both;
+}
+@keyframes pop{from{opacity:0;transform:scale(.85) translateY(18px)}to{opacity:1;transform:none}}
+.card:hover{transform:translateY(-8px) scale(1.025)}
+.card:hover{box-shadow:0 18px 34px rgba(0,0,0,.34), 0 0 26px -4px var(--rc)}
+.idtag{position:absolute;top:10px;left:12px;z-index:3;font-family:'Fredoka';font-weight:600;
+  font-size:12px;color:#fff;background:rgba(36,26,77,.55);border-radius:999px;padding:3px 9px}
+.stage{position:relative;height:170px;display:grid;place-items:center;margin-top:4px}
+.halo{position:absolute;width:150px;height:150px;border-radius:50%;
+  background:radial-gradient(circle,var(--rc),transparent 68%);opacity:.45;filter:blur(2px)}
+.r-legendaire .halo,.r-mythique .halo{animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.75;transform:scale(1.12)}}
+.subject{position:relative;z-index:2;display:grid;place-items:center;height:150px;width:100%}
+.subject img{max-width:78%;max-height:140px;object-fit:contain;border-radius:12px;
+  filter:drop-shadow(0 10px 10px rgba(0,0,0,.3))}
+.creature{animation:bob 3.4s ease-in-out infinite}
+.card:nth-child(2n) .creature{animation-duration:4.1s;animation-delay:-1.2s}
+.card:nth-child(3n) .creature{animation-duration:2.9s;animation-delay:-.6s}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-12px) rotate(3deg)}}
+.ph{font-size:74px;line-height:1;filter:drop-shadow(0 8px 8px rgba(0,0,0,.25))}
+.ph-note{position:absolute;bottom:4px;left:0;right:0;text-align:center;z-index:3;
+  font-family:'Fredoka';font-size:11px;color:#b3adcf;font-weight:500}
+.sparkle{position:absolute;z-index:3;font-size:20px;animation:tw 1.8s ease-in-out infinite}
+.sparkle.s1{top:14px;right:14px}.sparkle.s2{bottom:64px;left:14px;animation-delay:.9s;font-size:15px}
+@keyframes tw{0%,100%{opacity:.3;transform:scale(.7)}50%{opacity:1;transform:scale(1.1)}}
+.info{padding:2px 14px 0;text-align:center}
+.pname{font-family:'Fredoka';font-weight:700;font-size:19px;color:var(--ink);line-height:1.05;margin-bottom:8px}
+.badges{display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:wrap}
+.tier{font-family:'Fredoka';font-weight:600;font-size:12px;color:#fff;padding:4px 11px;border-radius:999px;background:var(--rc)}
+.r-legendaire .tier{color:#5a3d00}
+.acc{display:inline-flex;align-items:center;gap:5px;font-family:'Nunito';font-weight:800;font-size:11px;
+  color:var(--ink-soft);background:#f0eefb;border-radius:999px;padding:4px 10px 4px 8px}
+.acc::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c,#aaa)}
+
+/* ---------- MODAL ---------- */
+.modal{position:fixed;inset:0;z-index:100;display:none;place-items:center;padding:20px;
+  background:rgba(20,10,45,.82);backdrop-filter:blur(6px)}
+.modal.open{display:grid;animation:fade .2s ease both}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.bigcard{max-width:440px;width:100%;background:#fff;border-radius:26px;overflow:hidden;
+  border:5px solid var(--rc);box-shadow:0 26px 70px rgba(0,0,0,.5);
+  animation:popbig .3s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes popbig{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
+.bigstage{height:240px;position:relative;display:grid;place-items:center}
+.bigstage .halo{width:210px;height:210px}
+.bigstage img{position:relative;z-index:2;max-width:60%;max-height:200px;object-fit:contain;border-radius:14px;
+  filter:drop-shadow(0 14px 16px rgba(0,0,0,.3))}
+.bigstage .ph{font-size:120px;position:relative;z-index:2}
+.bigbody{padding:4px 26px 28px;text-align:center;color:var(--ink)}
+.bigbody h2{font-family:'Fredoka';font-weight:700;font-size:27px;margin:2px 0 10px;line-height:1}
+.desc{font-family:'Nunito';font-weight:700;color:#5b5285;line-height:1.5;margin:14px 0 16px;font-size:16px}
+.who{font-family:'Fredoka';font-weight:600;font-size:14px;color:var(--ink-soft);margin-bottom:16px}
+.stats{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.stat{background:#f4f2fc;border-radius:14px;padding:9px 16px;min-width:88px}
+.stat .k{font-family:'Fredoka';font-weight:500;font-size:11px;color:var(--ink-soft)}
+.stat .v{font-family:'Fredoka';font-weight:700;font-size:20px;color:var(--ink);margin-top:1px}
+.close{position:absolute;top:12px;right:14px;z-index:4;background:#fff;border:none;
+  color:var(--ink);width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:22px;font-weight:700;
+  box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.close:hover{transform:scale(1.08)}
+
+/* ---------- ADD FORM ---------- */
+.form-card{max-width:420px;width:100%;background:#fff;border-radius:24px;padding:26px;position:relative;
+  color:var(--ink);box-shadow:0 26px 70px rgba(0,0,0,.5);animation:popbig .3s cubic-bezier(.2,1.3,.4,1) both}
+.form-card h2{font-family:'Fredoka';font-weight:700;font-size:23px;text-align:center;margin-bottom:4px}
+.form-card p.sub{text-align:center;font-family:'Nunito';font-weight:700;color:var(--ink-soft);margin-bottom:18px;font-size:14px}
+.field{margin-bottom:13px}
+.field label{display:block;font-family:'Fredoka';font-weight:600;font-size:14px;color:var(--ink);margin-bottom:5px}
+.field input,.field textarea,.field select{width:100%;background:#f4f2fc;border:2px solid #e6e2f5;
+  border-radius:12px;padding:11px 13px;color:var(--ink);font-family:'Nunito';font-weight:700;font-size:16px;outline:none}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--c-epique)}
+.field textarea{resize:vertical;min-height:56px}
+.drop{border:2px dashed var(--c-epique);border-radius:12px;padding:16px;text-align:center;cursor:pointer;
+  color:var(--ink-soft);font-family:'Fredoka';font-weight:500;font-size:14px;transition:background .15s}
+.drop:hover{background:#f7f2ff}
+.drop img{max-height:90px;border-radius:10px;margin-top:8px}
+.form-actions{display:flex;gap:10px;margin-top:6px}
+.btn{flex:1;padding:12px;border-radius:14px;cursor:pointer;font-family:'Fredoka';font-weight:600;font-size:15px;border:none;transition:transform .12s}
+.btn:hover{transform:translateY(-2px)}
+.btn.primary{color:#fff;background:linear-gradient(90deg,#ff6ec4,#ff9a5a)}
+.btn.ghost{background:#f0eefb;color:var(--ink-soft)}
+
+footer{text-align:center;padding:20px 18px 46px;color:#c5b8e8;font-family:'Fredoka';font-weight:500;font-size:13px;opacity:.8}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:520px){
+  .gallery{grid-template-columns:1fr 1fr;gap:14px}
+  .stage{height:140px}.subject{height:120px}.subject img{max-height:115px}.ph{font-size:56px}
+  .pname{font-size:16px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🧠</div>
+  <h1>Musée du Brainrot</h1>
+  <p class="tagline">La collec des créatures les plus chelous de Roblox 🔥</p>
+  <div class="count-pill" id="countPill">0 Brainrot</div>
+</header>
+
+<div class="controls">
+  <div class="controls-inner">
+    <div class="search">
+      <span>🔎</span>
+      <input id="search" type="text" placeholder="Cherche un Brainrot…" aria-label="Rechercher">
+    </div>
+    <div class="chips" id="chips">
+      <button class="chip active" data-f="all">Tout voir</button>
+      <button class="chip" data-f="commun">Commun</button>
+      <button class="chip" data-f="rare">Rare</button>
+      <button class="chip" data-f="epique">Épique</button>
+      <button class="chip" data-f="legendaire">Légendaire</button>
+      <button class="chip" data-f="mythique">Mythique</button>
+    </div>
+    <button class="add-btn" id="openAdd">+ Ajouter</button>
+  </div>
+  <div class="controls-inner controls-coll">
+    <span class="coll-label">Mes comptes :</span>
+    <div class="chips" id="chipsColl">
+      <button class="chip active" data-c="all">Tous</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <p class="count" id="count"></p>
+  <div class="gallery" id="gallery"></div>
+</div>
+
+<div class="modal" id="modal"></div>
+<div class="modal" id="addModal"></div>
+
+<footer>Musée du Brainrot — ma collec à moi 🧠✨</footer>
+
+<script>
+const TIERS = {
+  commun:     {label:"Commun",     cls:"r-commun"},
+  rare:       {label:"Rare",       cls:"r-rare"},
+  epique:     {label:"Épique",     cls:"r-epique"},
+  legendaire: {label:"Légendaire", cls:"r-legendaire"},
+  mythique:   {label:"Mythique",   cls:"r-mythique"},
+};
+const RC = {commun:"var(--c-commun)",rare:"var(--c-rare)",epique:"var(--c-epique)",legendaire:"var(--c-legendaire)",mythique:"var(--c-mythique)"};
+
+/* Tes comptes Roblox — change juste les pseudos ou les couleurs ici. */
+const COLLECTIONS = {
+  1:{name:"Kakou19",      color:"#3da5ff"},
+  2:{name:"Superkakou20", color:"#34c77b"},
+  3:{name:"Superkakou21", color:"#ffb01f"},
+  4:{name:"Superkakou22", color:"#ff6ec4"},
+  5:{name:"Superkakou23", color:"#b15cff"},
+};
+const accLabel = n => "Compte "+n;
+
+/* ====================================================
+   TA COLLECTION — c'est ICI qu'on ajoute les Brainrots.
+     name  : son nom
+     tier  : commun | rare | epique | legendaire | mythique
+     coll  : sur quel compte (1 à 5)
+     img   : "photos/lenom.png" (capture d'écran), ou "" pour l'emoji
+     emoji : affiché s'il n'y a pas de photo
+     desc  : petit texte (mets ce que tu veux, c'est plus drôle !)
+     power / value : deux stats pour le fun
+   ==================================================== */
+let COLLECTION = [
+  {name:"Exemple — remplace-moi ! 📷", tier:"epique", coll:1, img:"photos/exemple.png", emoji:"📷",
+   desc:"Ça, c'est une carte avec une VRAIE photo. Mets la tienne dans le dossier photos/ puis change cette ligne. Le README explique tout !",
+   power:"100", value:"? §"},
+  {name:"Blorbo le Flottant", tier:"commun", coll:1, img:"", emoji:"🫧",
+   desc:"Mon tout premier Brainrot. Il fait rien mais je l'aime bien.",
+   power:"3", value:"12 §"},
+  {name:"Gugulino Spaghettini", tier:"rare", coll:2, img:"", emoji:"🍝",
+   desc:"Choppé en pleine nuit. Personne comprend ce que c'est, moi non plus.",
+   power:"47", value:"310 §"},
+  {name:"Choup-Choup le Velu", tier:"epique", coll:3, img:"", emoji:"🦔",
+   desc:"Trop stylé celui-là. Un de mes préférés franchement.",
+   power:"128", value:"2 400 §"},
+  {name:"Sa Majesté Boumboum", tier:"legendaire", coll:1, img:"", emoji:"💣",
+   desc:"La star de ma collec. Touchez pas. 👑",
+   power:"512", value:"19 800 §"},
+  {name:"L'Entité Sans Nom", tier:"mythique", coll:5, img:"", emoji:"👁️",
+   desc:"Je sais même pas comment je l'ai eu. Un peu flippant.",
+   power:"???", value:"Inestimable"},
+  {name:"Croquette Royale", tier:"rare", coll:4, img:"", emoji:"🐸",
+   desc:"Le roi des grenouilles. Bref, trop bien.",
+   power:"63", value:"540 §"},
+];
+
+const gallery = document.getElementById('gallery');
+const countPill = document.getElementById('countPill');
+const modal = document.getElementById('modal');
+let activeFilter='all', activeColl='all', searchTerm='';
+
+function visible(){
+  return COLLECTION.filter(p=>{
+    const okTier = activeFilter==='all' || p.tier===activeFilter;
+    const okColl = activeColl==='all' || String(p.coll)===String(activeColl);
+    const okSearch = p.name.toLowerCase().includes(searchTerm);
+    return okTier && okColl && okSearch;
+  });
+}
+function escape(s){return (s||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))}
+function subjectHTML(p){
+  if(p.img){
+    return `<img src="${p.img}" alt="${escape(p.name)}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'ph',textContent:'${p.emoji||'🖼️'}'}))">`;
+  }
+  return `<div class="ph">${p.emoji||'🖼️'}</div>`;
+}
+function accBadge(c){
+  const C=COLLECTIONS[c]; if(!C) return '';
+  return `<span class="acc" style="--c:${C.color}">${escape(C.name)}</span>`;
+}
+
+function render(){
+  const list = visible();
+  countPill.textContent = `${COLLECTION.length} Brainrot${COLLECTION.length>1?'s':''} dans la collec`;
+  gallery.innerHTML = list.map((p,i)=>{
+    const t = TIERS[p.tier]||TIERS.commun;
+    const idx = COLLECTION.indexOf(p);
+    const spark = (p.tier==='legendaire'||p.tier==='mythique')
+      ? `<span class="sparkle s1">✨</span><span class="sparkle s2">⭐</span>` : '';
+    return `
+    <div class="card ${t.cls}" style="--rc:${RC[p.tier]};animation-delay:${i*0.05}s" onclick="openPiece(${idx})">
+      <div class="idtag">#${String(idx+1).padStart(3,'0')}</div>
+      <div class="stage">
+        <div class="halo"></div>
+        ${spark}
+        <div class="subject"><div class="creature">${subjectHTML(p)}</div></div>
+        ${!p.img?'<div class="ph-note">photo à ajouter</div>':''}
+      </div>
+      <div class="info">
+        <div class="pname">${escape(p.name)}</div>
+        <div class="badges">
+          <span class="tier">${t.label}</span>
+          ${accBadge(p.coll)}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  if(!list.length){
+    gallery.innerHTML = `<p style="grid-column:1/-1;text-align:center;font-family:'Fredoka';font-weight:500;color:#d9ccff;padding:50px 0">
+      Rien ici pour l'instant 👀</p>`;
+  }
+}
+
+window.openPiece = function(idx){
+  const p = COLLECTION[idx]; const t = TIERS[p.tier]||TIERS.commun;
+  const C = COLLECTIONS[p.coll]||{};
+  modal.innerHTML = `
+    <div class="bigcard ${t.cls}" style="--rc:${RC[p.tier]}">
+      <button class="close" onclick="closeModal()">×</button>
+      <div class="bigstage"><div class="halo"></div>${subjectHTML(p)}</div>
+      <div class="bigbody">
+        <h2>${escape(p.name)}</h2>
+        <div class="badges"><span class="tier">${t.label}</span></div>
+        <p class="desc">${escape(p.desc||'Pas encore de petit texte 😄')}</p>
+        <div class="who">🎮 Compte : ${escape(C.name||'?')}</div>
+        <div class="stats">
+          <div class="stat"><div class="k">💪 Force</div><div class="v">${escape(p.power||'—')}</div></div>
+          <div class="stat"><div class="k">💰 Valeur</div><div class="v">${escape(p.value||'—')}</div></div>
+        </div>
+      </div>
+    </div>`;
+  modal.classList.add('open');
+};
+window.closeModal = ()=>modal.classList.remove('open');
+modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});
+
+/* filtres + recherche */
+document.getElementById('chips').addEventListener('click',e=>{
+  const b=e.target.closest('.chip'); if(!b)return;
+  document.querySelectorAll('#chips .chip').forEach(c=>c.classList.remove('active'));
+  b.classList.add('active'); activeFilter=b.dataset.f; render();
+});
+document.getElementById('chipsColl').addEventListener('click',e=>{
+  const b=e.target.closest('.chip'); if(!b)return;
+  document.querySelectorAll('#chipsColl .chip').forEach(c=>c.classList.remove('active'));
+  b.classList.add('active'); activeColl=b.dataset.c; render();
+});
+document.getElementById('search').addEventListener('input',e=>{searchTerm=e.target.value.toLowerCase().trim();render();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeAdd();}});
+
+/* construit les boutons "comptes" et les options du formulaire depuis COLLECTIONS */
+function buildAccounts(){
+  document.getElementById('chipsColl').innerHTML =
+    `<button class="chip active" data-c="all">Tous</button>` +
+    Object.entries(COLLECTIONS).map(([n,C])=>
+      `<button class="chip chip-acc" data-c="${n}" style="--c:${C.color}">
+         <span class="ca-top">${accLabel(n)}</span><span class="ca-name">${escape(C.name)}</span>
+       </button>`).join('');
+}
+function accOptions(){
+  return Object.entries(COLLECTIONS).map(([n,C])=>
+    `<option value="${n}">${accLabel(n)} — ${escape(C.name)}</option>`).join('');
+}
+
+/* ---- ajouter un Brainrot ---- */
+const addModal = document.getElementById('addModal');
+let pendingImg = "";
+document.getElementById('openAdd').addEventListener('click',openAdd);
+function openAdd(){
+  pendingImg="";
+  addModal.innerHTML = `
+    <div class="form-card">
+      <button class="close" onclick="closeAdd()">×</button>
+      <h2>Ajouter un Brainrot 🔥</h2>
+      <p class="sub">Ajouté juste pour cette visite</p>
+      <div class="field"><label>Son nom</label><input id="f-name" placeholder="ex. Tartine la Magnifique"></div>
+      <div class="field"><label>Rareté</label>
+        <select id="f-tier">
+          <option value="commun">Commun</option>
+          <option value="rare">Rare</option>
+          <option value="epique">Épique</option>
+          <option value="legendaire">Légendaire</option>
+          <option value="mythique">Mythique</option>
+        </select></div>
+      <div class="field"><label>Quel compte ?</label>
+        <select id="f-coll">${accOptions()}</select></div>
+      <div class="field"><label>Petit texte (si tu veux)</label><textarea id="f-desc" placeholder="Raconte un truc dessus…"></textarea></div>
+      <div class="field"><label>Photo (capture d'écran)</label>
+        <div class="drop" id="drop">📷 Clique pour choisir une image<div id="preview"></div></div>
+        <input type="file" id="f-file" accept="image/*" style="display:none">
+      </div>
+      <div class="form-actions">
+        <button class="btn ghost" onclick="closeAdd()">Annuler</button>
+        <button class="btn primary" onclick="savePiece()">Ajouter !</button>
+      </div>
+    </div>`;
+  addModal.classList.add('open');
+  const drop=document.getElementById('drop'), file=document.getElementById('f-file');
+  drop.addEventListener('click',()=>file.click());
+  file.addEventListener('change',()=>{
+    const f=file.files[0]; if(!f)return;
+    const reader=new FileReader();
+    reader.onload=()=>{pendingImg=reader.result;
+      document.getElementById('preview').innerHTML=`<br><img src="${pendingImg}" alt="aperçu">`;};
+    reader.readAsDataURL(f);
+  });
+}
+window.closeAdd=()=>addModal.classList.remove('open');
+addModal.addEventListener('click',e=>{if(e.target===addModal)closeAdd()});
+window.savePiece=function(){
+  const name=document.getElementById('f-name').value.trim()||"Sans nom";
+  const tier=document.getElementById('f-tier').value;
+  const coll=parseInt(document.getElementById('f-coll').value,10);
+  const desc=document.getElementById('f-desc').value.trim();
+  COLLECTION.push({name,tier,coll,img:pendingImg,emoji:"🖼️",desc,power:String(Math.floor(Math.random()*400)),value:"? §"});
+  closeAdd(); render();
+  window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+};
+
+buildAccounts();
+render();
+</script>
+</body>
+</html>
