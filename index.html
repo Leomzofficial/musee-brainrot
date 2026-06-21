@@ -22,14 +22,15 @@ body{
   background:linear-gradient(160deg,#190d3c,#2a1456 60%,#3a1a4f);
   -webkit-font-smoothing:antialiased;overflow-x:hidden;
 }
-/* fond d'écran (image de la galerie), fixe et assombri pour rester lisible */
+/* fond d'écran : le grand visuel du musée, fixe ; voile plus clair en haut
+   (pour voir le titre) et plus sombre vers le bas (pour lire les cartes) */
 .bg{position:fixed;inset:0;z-index:0;pointer-events:none;
-  background:linear-gradient(rgba(16,8,38,.80),rgba(16,8,38,.88)),
-             url('fond.jpg') center/cover no-repeat}
+  background:linear-gradient(rgba(12,6,30,.30) 0%, rgba(12,6,30,.68) 34%, rgba(12,6,30,.85) 100%),
+             url('titre.jpg') top center / cover no-repeat}
 .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 18px}
 
 /* ---------- HEADER ---------- */
-header{text-align:center;padding:30px 18px 14px;position:relative;z-index:1}
+header{text-align:center;padding:clamp(140px,32vh,300px) 18px 16px;position:relative;z-index:1}
 .banner{display:block;width:100%;max-width:760px;margin:0 auto 8px;border-radius:18px;
   box-shadow:0 16px 44px rgba(0,0,0,.55);border:2px solid rgba(255,255,255,.12)}
 .logo{font-size:54px;display:inline-block;animation:wobble 3s ease-in-out infinite}
@@ -193,7 +194,6 @@ footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;colo
 <div class="bg"></div>
 
 <header>
-  <img class="banner" src="titre.jpg" alt="Le Grand Musée des Brainrots de Leomz">
   <div class="count-pill" id="countPill">0 Brainrot</div>
 </header>
 
