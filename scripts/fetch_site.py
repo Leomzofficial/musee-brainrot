@@ -180,50 +180,47 @@ def parse(raw):
 # ── Lire l'état actuel de index.html ──
 html = HTML_PATH.read_text(encoding='utf-8')
 
-# Parser les entrées pour trouver celles qui manquent encore
 accounts = {'Kakou19','Superkakou20','Superkakou21','Superkakou22','Superkakou23'}
 entries_raw = re.findall(r'\{name:"[^"]+",.*?(?=,?\s*\{name:|,?\s*\];)', html, re.DOTALL)
 
-need_img, need_desc = set(), set()
+need_desc = set()
+all_names = []
 for e in entries_raw:
     nm = re.search(r'name:"([^"]+)"', e)
     if not nm or nm.group(1) in accounts: continue
     name = nm.group(1)
-    if re.search(r'img:""', e):  need_img.add(name)
+    all_names.append(name)
     if re.search(r'desc:""', e): need_desc.add(name)
 
-need_any = need_img | need_desc
-print(f"Sans image : {len(need_img)}   Sans desc : {len(need_desc)}   Total à traiter : {len(need_any)}")
-
-# Construire la liste à fetcher
+# Construire la liste : toutes les entrées qui ont un slug sur le site
 to_fetch = {}
-for name in need_any:
+unmapped = []
+for name in all_names:
     s = site_slug(name)
     if s:
         to_fetch[name] = s
     else:
-        print(f"  — pas sur le site : {name}")
+        unmapped.append(name)
 
-print(f"\n{len(to_fetch)} à fetcher depuis le site\n")
+print(f"Sur le site : {len(to_fetch)}   Hors site : {len(unmapped)}   Sans desc : {len(need_desc)}")
+print(f"\n→ Téléchargement de toutes les images + descriptions manquantes\n")
 
 def process(name, slug):
-    r = {"name": name, "slug": slug, "img_path": None, "desc": "", "prix": "", "revenu": ""}
-    # Image si manquante
-    if name in need_img:
-        dest = PHOTOS_DIR / f"{slug}.jpg"
-        if not dest.exists():
-            data = fetch(f"{BASE}/images/brainrots/{slug}.webp")
-            if data and to_jpg(data, dest):
-                r["img_path"] = f"photos/{slug}.jpg"
-                print(f"  ✓ img  {name}")
-            else:
-                print(f"  ✗ img  {name}", file=sys.stderr)
-        else:
-            r["img_path"] = f"photos/{slug}.jpg"
-    # Page pour desc/prix/revenu
-    raw = fetch(f"{BASE}/brainrots/{slug}")
-    if raw:
-        r["desc"], r["prix"], r["revenu"] = parse(raw)
+    r = {"name": name, "slug": slug, "img_path": None, "img_new": False,
+         "desc": "", "prix": "", "revenu": ""}
+    # Image : toujours re-télécharger depuis le site pour rester à jour
+    dest = PHOTOS_DIR / f"{slug}.jpg"
+    data = fetch(f"{BASE}/images/brainrots/{slug}.webp")
+    if data and to_jpg(data, dest):
+        r["img_path"] = f"photos/{slug}.jpg"
+        r["img_new"] = True
+    elif dest.exists():
+        r["img_path"] = f"photos/{slug}.jpg"   # garder l'existante si download échoue
+    # Page pour desc/prix/revenu (seulement si desc encore vide)
+    if name in need_desc:
+        raw = fetch(f"{BASE}/brainrots/{slug}")
+        if raw:
+            r["desc"], r["prix"], r["revenu"] = parse(raw)
     return r
 
 results = {}
@@ -234,9 +231,8 @@ with ThreadPoolExecutor(max_workers=20) as ex:
         results[r["name"]] = r
 
 # ── Patch index.html entrée par entrée ──
-# Utilise un remplacement ciblé par nom pour éviter tout problème de regex cross-entrées
+imgs_ok = imgs_updated = descs_ok = 0
 for name, r in results.items():
-    # Trouver l'entrée par son nom (pattern sans {} imbriqués)
     pat = rf'\{{[^{{}}]*name:"{re.escape(name)}"[^{{}}]*\}}'
     m = re.search(pat, html)
     if not m:
@@ -244,11 +240,17 @@ for name, r in results.items():
         continue
     old = m.group(0)
     new = old
-    if r["img_path"] and re.search(r'img:""', old):
-        new = re.sub(r'img:""', f'img:"{r["img_path"]}"', new)
+    if r["img_path"]:
+        cur = re.search(r'img:"([^"]*)"', old)
+        cur_val = cur.group(1) if cur else ''
+        if cur_val != r["img_path"]:
+            new = re.sub(r'img:"[^"]*"', f'img:"{r["img_path"]}"', new)
+            if r["img_new"]: imgs_updated += 1
+        if r["img_new"]: imgs_ok += 1
     if r["desc"] and re.search(r'desc:""', old):
         safe = r["desc"].replace('\\', '\\\\').replace('"', '\\"')
         new = re.sub(r'desc:""', f'desc:"{safe}"', new)
+        descs_ok += 1
     if r["prix"] and re.search(r'prix:"\?"', old):
         new = re.sub(r'prix:"\?"', f'prix:"{r["prix"]}"', new)
     if r["revenu"] and re.search(r'revenu:"\?"', old):
@@ -259,6 +261,5 @@ for name, r in results.items():
 HTML_PATH.write_text(html, encoding='utf-8')
 
 # ── Résumé ──
-imgs_ok  = sum(1 for r in results.values() if r["img_path"])
-descs_ok = sum(1 for r in results.values() if r["desc"])
-print(f"\n✅ Nouvelles images : {imgs_ok}   Nouvelles descriptions : {descs_ok}")
+print(f"\n✅ Images téléchargées : {imgs_ok}  (dont chemins mis à jour : {imgs_updated})")
+print(f"✅ Nouvelles descriptions : {descs_ok}")

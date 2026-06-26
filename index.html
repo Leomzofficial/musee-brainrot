@@ -252,8 +252,14 @@ footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;colo
 }
 .pick-remove:hover{background:rgba(255,80,80,.28)}
 .card-vals{
-  font-family:'Fredoka';font-size:12px;font-weight:500;
-  color:#a89fcc;display:flex;gap:10px;justify-content:center;margin-bottom:5px;
+  font-family:'Fredoka';font-size:14.5px;font-weight:700;
+  display:flex;gap:6px;justify-content:center;flex-wrap:wrap;
+  margin:0 4px 7px;
+}
+.card-vals span{
+  padding:2px 9px;border-radius:8px;
+  background:rgba(255,255,255,.08);
+  text-shadow:0 1px 5px rgba(0,0,0,.55);
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (max-width:520px){
@@ -803,6 +809,19 @@ function visible(){
   });
 }
 function escape(s){return (s||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))}
+function fmtVal(v){return(!v||v==='?')?null:(v[0]==='$'?v:'$'+v);}
+function valColor(v){
+  if(!v||v==='?')return'#9ca3af';
+  const rev=v.includes('/s');
+  const clean=v.replace('$','').replace('/s','').replace(',','.').trim();
+  const m=clean.match(/^([0-9.]+)([KMBkm]?)/i);
+  if(!m)return'#9ca3af';
+  let n=parseFloat(m[1]);const u=(m[2]||'').toUpperCase();
+  if(u==='K')n*=1e3;else if(u==='M')n*=1e6;else if(u==='B')n*=1e9;
+  const t=rev?[500,5e3,50e3,500e3,5e6]:[50e3,500e3,5e6,50e6,500e6];
+  const c=['#9ca3af','#4ade80','#38bdf8','#c084fc','#fb923c','#fbbf24'];
+  const i=t.findIndex(x=>n<x);return i<0?c[5]:c[i];
+}
 function subjectHTML(p){
   if(p.img){
     return `<img src="${p.img}" alt="${escape(p.name)}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'ph',textContent:'${p.emoji||'🖼️'}'}))">`;
@@ -829,8 +848,12 @@ function render(){
     const pickerBtns = Object.entries(COLLECTIONS).map(([n,C])=>
       `<button class="pick-acc" style="--c:${C.color}" onclick="pickColl(${idx},${n},event)">${escape(C.name)}</button>`
     ).join('');
-    const vals = (p.prix&&p.prix!=='?'||p.revenu&&p.revenu!=='?')
-      ? `<div class="card-vals"><span>💰 ${escape(p.prix||'?')}</span><span>📈 ${escape(p.revenu||'?')}</span></div>` : '';
+    const prixFmt=fmtVal(p.prix), revFmt=fmtVal(p.revenu);
+    const vals=(prixFmt||revFmt)?`<div class="card-vals">${
+      prixFmt?`<span style="color:${valColor(p.prix)}">💰 ${escape(prixFmt)}</span>`:''
+    }${
+      revFmt?`<span style="color:${valColor(p.revenu)}">📈 ${escape(revFmt)}</span>`:''
+    }</div>`:'';
     return `
     <div class="card ${t.cls} ${p.owned?'':'todo'}" data-idx="${idx}" style="--rc:${RC[p.tier]};animation-delay:${i*0.05}s" onclick="openPiece(${idx})">
       <div class="idtag">#${String(idx+1).padStart(3,'0')}</div>
