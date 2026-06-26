@@ -1,6 +1,6 @@
-# 🧠 Musée du Brainrot
+# 🧠 Le Musée du Brainrot de Leomz
 
-Ta collec de Brainrots, réunie au même endroit — même quand ils sont éparpillés sur tes 5 comptes Roblox.
+La collec de Brainrots de Leomz, réunie au même endroit — même quand ils sont éparpillés sur ses 5 comptes Roblox.
 
 Pour juste **regarder** le musée : ouvre le fichier `index.html` (double-clic), ou va sur le lien du site une fois qu'il est en ligne.
 

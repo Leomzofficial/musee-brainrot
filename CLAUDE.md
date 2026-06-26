@@ -28,13 +28,33 @@ en ligne sur `https://leomzofficial.github.io/musee-brainrot/`.
 Tout se passe dans `index.html`, dans le tableau `COLLECTION` (commenté dans le code).
 Chaque Brainrot est un objet :
 ```js
-{name:"Nom", tier:"rare", coll:1, img:"photos/nomfichier.png", emoji:"🐸",
- desc:"petit texte", power:"50", value:"500 §"},
+{name:"Nom", tier:"rare", owned:false, coll:1, img:"photos/nomfichier.png", emoji:"🐸",
+ desc:"petit texte", prix:"2,4M", revenu:"18K/s"},
 ```
-- `tier` (rareté) : `commun` | `rare` | `epique` | `legendaire` | `mythique`
-- `coll` (compte d'origine) : entier de `1` à `5` (voir plus bas)
+- `tier` (rareté, 8 paliers du jeu) : `commun` | `rare` | `epique` | `legendaire` | `mythique` | `dieu` | `secret` | `og`
+- `owned` : `true` = Leomz l'a attrapé / `false` = à attraper (carte grisée "silhouette")
+- `coll` (compte d'origine) : `1` à `5` — utile seulement si `owned:true`
 - `img` : chemin vers la capture, ex. `"photos/boumboum.png"` ; mettre `""` si pas de photo
 - `emoji` : affiché à la place de l'image si `img` est vide ou introuvable
+- `prix` : prix d'achat dans le jeu (ex. `"2,4M"`) ; `revenu` : revenu/seconde (ex. `"18K/s"`)
+
+Le site affiche un **compteur de complétion** (attrapés / total) et un filtre
+**Tout / Attrapés / À attraper**, en plus des filtres par rareté et par compte.
+
+## Importer l'index complet (~500 Brainrots) depuis le web
+But : remplir `COLLECTION` avec tous les Brainrots du jeu, tous en `owned:false`
+au départ (Leomz passera ensuite les siens en `owned:true`).
+Sources fiables (nom + rareté + prix + revenu/s + image), par ordre de préférence :
+- `https://xstealabrainrot.com/all-brainrots/` (+ pages par rareté : `/all-common-brainrots/`,
+  `/all-rare-brainrots/`, `/all-legendary-brainrots/`, etc.)
+- `https://sabwiki.com/` (stats détaillées par Brainrot)
+- `https://stealabrainrot.fandom.com/wiki/Brainrots` (le plus exhaustif)
+Méthode : lire ces pages, extraire pour chaque Brainrot `name`, `tier`, `prix`, `revenu`,
+et générer les objets `COLLECTION` (avec `owned:false`, `coll:1`, `img:""`, un `emoji`
+pertinent). Procéder rareté par rareté. Ne PAS inventer de valeurs : si une donnée
+manque, mettre `"?"`. Le jeu se met à jour chaque samedi → relancer l'import pour ajouter
+les nouveaux. Les images des Brainrots non possédés restent en emoji (silhouette) ;
+seules les photos de Leomz (ses captures) vont dans `photos/`.
 
 ## Les 5 comptes (bloc `COLLECTIONS` en haut du `<script>`)
 | coll | pseudo |
@@ -47,21 +67,6 @@ Chaque Brainrot est un objet :
 Les boutons de filtre "comptes" et le menu du formulaire sont générés
 automatiquement depuis ce bloc : pour renommer un compte ou changer sa couleur,
 modifier UNIQUEMENT `COLLECTIONS`, ne pas toucher au HTML des filtres.
-
-## Architecture interne (JS)
-
-Tout le code est dans le `<script>` en bas de `index.html`. Pas de framework, pas de modules.
-
-- **`COLLECTION`** → tableau de données, source unique de vérité pour les cartes.
-- **`COLLECTIONS`** → objet de config des comptes (nom + couleur). Ne jamais dupliquer cette info dans le HTML.
-- **`TIERS` / `RC`** → mappent les clés de rareté vers les classes CSS (`r-commun`, etc.) et les valeurs de couleur CSS (`--rc`).
-- **`visible()`** → filtre `COLLECTION` selon `activeFilter`, `activeColl` et `searchTerm`. Appelée par `render()`.
-- **`render()`** → reconstruit intégralement `#gallery` en innerHTML à partir de `visible()`. Appelée à chaque changement de filtre ou de recherche.
-- **`openPiece(idx)`** → remplit et ouvre `#modal` avec le détail d'une carte (index dans `COLLECTION`).
-- **`buildAccounts()`** → génère les boutons de filtre `#chipsColl` et les `<option>` du formulaire depuis `COLLECTIONS`. Appelée une seule fois au chargement.
-- **`savePiece()`** → pousse un objet dans `COLLECTION` puis appelle `render()`. Mémoire uniquement, reset au rechargement.
-- **Deux modals** : `#modal` (détail lecture seule) et `#addModal` (formulaire ajout). Ouverture/fermeture par `.classList.add/remove('open')`.
-- **Intro** : `#intro` est `position:fixed` z-index 200 ; le clic sur ENTRER ajoute `.hide` (opacity 0) puis `display:none` après 650 ms. Le scroll est bloqué (`overflow:hidden`) jusqu'à ce clic.
 
 ## Règles importantes
 - **Noms de fichiers images** : minuscules, sans espaces ni accents (ex. `boumboum.png`,

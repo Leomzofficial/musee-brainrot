@@ -12,8 +12,9 @@
   --bg1:#241552; --bg2:#3b1d7a; --bg3:#7a2a8f;
   --card:#ffffff; --ink:#241a4d; --ink-soft:#7a72a3;
   /* couleurs de rareté façon jeu */
-  --c-commun:#9aa3b2; --c-rare:#3da5ff; --c-epique:#b15cff;
-  --c-legendaire:#ffb01f; --c-mythique:#ff4d6d;
+  --c-commun:#3ecf6a; --c-rare:#3da5ff; --c-epique:#b15cff;
+  --c-legendaire:#ffce3a; --c-mythique:#ff4d4d;
+  --c-dieu:#1fd1c1; --c-secret:#dfe4f2; --c-og:#f5c518;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -86,10 +87,21 @@ h1{
 #chips .chip[data-f="epique"].active{background:var(--c-epique);border-color:var(--c-epique);color:#fff}
 #chips .chip[data-f="legendaire"].active{background:var(--c-legendaire);border-color:var(--c-legendaire);color:#5a3d00}
 #chips .chip[data-f="mythique"].active{background:var(--c-mythique);border-color:var(--c-mythique);color:#fff}
+#chips .chip[data-f="dieu"].active{background:var(--c-dieu);border-color:var(--c-dieu);color:#06302c}
+#chips .chip[data-f="secret"].active{background:var(--c-secret);border-color:var(--c-secret);color:#2a2350}
+#chips .chip[data-f="og"].active{background:var(--c-og);border-color:var(--c-og);color:#3a2c00}
 .add-btn{font-family:'Fredoka';font-weight:600;font-size:14px;padding:9px 18px;border-radius:999px;
   cursor:pointer;border:none;color:#fff;background:linear-gradient(90deg,#ff6ec4,#ff9a5a);
   box-shadow:0 6px 16px rgba(255,110,196,.4);transition:transform .12s}
 .add-btn:hover{transform:translateY(-2px) scale(1.03)}
+
+/* compteur de complétion + statut attrapé/à attraper */
+.completion{display:flex;flex-direction:column;align-items:center;gap:6px;margin:0 auto 12px;max-width:520px}
+.comp-text{font-family:'Fredoka';font-weight:600;font-size:15px;color:#fff}
+.comp-bar{width:100%;height:10px;border-radius:999px;background:rgba(255,255,255,.18);overflow:hidden}
+.comp-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#ffd84d,#ff9a5a);transition:width .4s}
+.controls-status{margin-top:4px;gap:8px}
+#chipsStatus .chip.active{background:#fff;color:var(--ink);border-color:#fff}
 
 /* deuxième rangée : comptes */
 .controls-coll{margin-top:10px;gap:8px}
@@ -140,10 +152,16 @@ h1{
 .pname{font-family:'Fredoka';font-weight:700;font-size:19px;color:var(--ink);line-height:1.05;margin-bottom:8px}
 .badges{display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:wrap}
 .tier{font-family:'Fredoka';font-weight:600;font-size:12px;color:#fff;padding:4px 11px;border-radius:999px;background:var(--rc)}
-.r-legendaire .tier{color:#5a3d00}
+.r-legendaire .tier,.r-secret .tier,.r-og .tier{color:#3a2c00}
+.r-dieu .tier{color:#06302c}
 .acc{display:inline-flex;align-items:center;gap:5px;font-family:'Nunito';font-weight:800;font-size:11px;
   color:var(--ink-soft);background:#f0eefb;border-radius:999px;padding:4px 10px 4px 8px}
 .acc::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c,#aaa)}
+/* "à attraper" : carte grisée + pastille */
+.card.todo{filter:grayscale(.85) brightness(.82);opacity:.9}
+.card.todo .creature{opacity:.55}
+.todo-tag{display:inline-flex;align-items:center;gap:4px;font-family:'Fredoka';font-weight:600;font-size:11px;
+  color:var(--ink-soft);background:#eceaf3;border:1px dashed #c3bce0;border-radius:999px;padding:3px 10px}
 
 /* ---------- MODAL ---------- */
 .modal{position:fixed;inset:0;z-index:100;display:none;place-items:center;padding:20px;
@@ -212,6 +230,13 @@ footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;colo
 
 <header></header>
 
+<div class="wrap">
+  <div class="completion">
+    <div class="comp-text" id="compText">0 / 0 attrapés</div>
+    <div class="comp-bar"><div class="comp-fill" id="compFill" style="width:0%"></div></div>
+  </div>
+</div>
+
 <div class="controls">
   <div class="controls-inner">
     <div class="search">
@@ -225,8 +250,18 @@ footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;colo
       <button class="chip" data-f="epique">Épique</button>
       <button class="chip" data-f="legendaire">Légendaire</button>
       <button class="chip" data-f="mythique">Mythique</button>
+      <button class="chip" data-f="dieu">Dieu Brainrot</button>
+      <button class="chip" data-f="secret">Secret</button>
+      <button class="chip" data-f="og">OG</button>
     </div>
     <button class="add-btn" id="openAdd">+ Ajouter</button>
+  </div>
+  <div class="controls-inner controls-status">
+    <div class="chips" id="chipsStatus">
+      <button class="chip active" data-s="all">Tout</button>
+      <button class="chip" data-s="owned">✓ Attrapés</button>
+      <button class="chip" data-s="todo">À attraper</button>
+    </div>
   </div>
   <div class="controls-inner controls-coll">
     <span class="coll-label">Mes comptes :</span>
@@ -248,13 +283,17 @@ footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;colo
 
 <script>
 const TIERS = {
-  commun:     {label:"Commun",     cls:"r-commun"},
-  rare:       {label:"Rare",       cls:"r-rare"},
-  epique:     {label:"Épique",     cls:"r-epique"},
-  legendaire: {label:"Légendaire", cls:"r-legendaire"},
-  mythique:   {label:"Mythique",   cls:"r-mythique"},
+  commun:     {label:"Commun",        cls:"r-commun"},
+  rare:       {label:"Rare",          cls:"r-rare"},
+  epique:     {label:"Épique",        cls:"r-epique"},
+  legendaire: {label:"Légendaire",    cls:"r-legendaire"},
+  mythique:   {label:"Mythique",      cls:"r-mythique"},
+  dieu:       {label:"Dieu Brainrot", cls:"r-dieu"},
+  secret:     {label:"Secret",        cls:"r-secret"},
+  og:         {label:"OG",            cls:"r-og"},
 };
-const RC = {commun:"var(--c-commun)",rare:"var(--c-rare)",epique:"var(--c-epique)",legendaire:"var(--c-legendaire)",mythique:"var(--c-mythique)"};
+const RC = {commun:"var(--c-commun)",rare:"var(--c-rare)",epique:"var(--c-epique)",legendaire:"var(--c-legendaire)",
+  mythique:"var(--c-mythique)",dieu:"var(--c-dieu)",secret:"var(--c-secret)",og:"var(--c-og)"};
 
 /* Tes comptes Roblox — change juste les pseudos ou les couleurs ici. */
 const COLLECTIONS = {
@@ -267,50 +306,63 @@ const COLLECTIONS = {
 const accLabel = n => "Compte "+n;
 
 /* ====================================================
-   TA COLLECTION — c'est ICI qu'on ajoute les Brainrots.
-     name  : son nom
-     tier  : commun | rare | epique | legendaire | mythique
-     coll  : sur quel compte (1 à 5)
-     img   : "photos/lenom.png" (capture d'écran), ou "" pour l'emoji
-     emoji : affiché s'il n'y a pas de photo
-     desc  : petit texte (mets ce que tu veux, c'est plus drôle !)
-     power / value : deux stats pour le fun
+   L'INDEX DES BRAINROTS.
+     name   : nom du Brainrot
+     tier   : commun | rare | epique | legendaire | mythique | dieu | secret | og
+     owned  : true = Leomz l'a attrapé / false = à attraper
+     coll   : sur quel compte (1 à 5) — utile seulement si owned:true
+     img    : "photos/lenom.png" (capture), ou "" pour l'emoji
+     emoji  : affiché s'il n'y a pas de photo
+     desc   : petit texte (optionnel)
+     prix   : prix d'achat dans le jeu (ex. "2,4M")
+     revenu : revenu par seconde (ex. "18K/s")
+   Claude Code complète cet index depuis les sites sources (voir CLAUDE.md).
    ==================================================== */
 let COLLECTION = [
-  {name:"Exemple — remplace-moi ! 📷", tier:"epique", coll:1, img:"photos/exemple.png", emoji:"📷",
-   desc:"Ça, c'est une carte avec une VRAIE photo. Mets la tienne dans le dossier photos/ puis change cette ligne. Le README explique tout !",
-   power:"100", value:"? §"},
-  {name:"Blorbo le Flottant", tier:"commun", coll:1, img:"", emoji:"🫧",
-   desc:"Mon tout premier Brainrot. Il fait rien mais je l'aime bien.",
-   power:"3", value:"12 §"},
-  {name:"Gugulino Spaghettini", tier:"rare", coll:2, img:"", emoji:"🍝",
-   desc:"Choppé en pleine nuit. Personne comprend ce que c'est, moi non plus.",
-   power:"47", value:"310 §"},
-  {name:"Choup-Choup le Velu", tier:"epique", coll:3, img:"", emoji:"🦔",
-   desc:"Trop stylé celui-là. Un de mes préférés franchement.",
-   power:"128", value:"2 400 §"},
-  {name:"Sa Majesté Boumboum", tier:"legendaire", coll:1, img:"", emoji:"💣",
-   desc:"La star de ma collec. Touchez pas. 👑",
-   power:"512", value:"19 800 §"},
-  {name:"L'Entité Sans Nom", tier:"mythique", coll:5, img:"", emoji:"👁️",
-   desc:"Je sais même pas comment je l'ai eu. Un peu flippant.",
-   power:"???", value:"Inestimable"},
-  {name:"Croquette Royale", tier:"rare", coll:4, img:"", emoji:"🐸",
-   desc:"Le roi des grenouilles. Bref, trop bien.",
-   power:"63", value:"540 §"},
+  // ✅ Déjà attrapés par Leomz (exemples — à corriger avec ses vrais Brainrots)
+  {name:"Exemple — remplace-moi ! 📷", tier:"epique", coll:1, owned:true, img:"photos/exemple.png", emoji:"📷",
+   desc:"Carte avec une VRAIE photo. Mets la tienne dans photos/ puis change la ligne (voir README).", prix:"?", revenu:"?"},
+  {name:"Trippi Troppi", tier:"rare", coll:1, owned:true, img:"", emoji:"🐟", desc:"", prix:"?", revenu:"?"},
+  {name:"Brr Brr Patapim", tier:"epique", coll:2, owned:true, img:"", emoji:"🌳", desc:"", prix:"?", revenu:"?"},
+  {name:"Ballerina Cappuccina", tier:"legendaire", coll:1, owned:true, img:"", emoji:"🩰", desc:"", prix:"?", revenu:"?"},
+  {name:"Frigo Camelo", tier:"mythique", coll:3, owned:true, img:"", emoji:"🐫", desc:"", prix:"?", revenu:"?"},
+
+  // ⬜ À attraper (échantillon de l'index — Claude Code complétera les ~500)
+  {name:"Noobini Pizzanini", tier:"commun", coll:1, owned:false, img:"", emoji:"🍕", desc:"", prix:"?", revenu:"?"},
+  {name:"Lirili Larila", tier:"commun", coll:1, owned:false, img:"", emoji:"⏰", desc:"", prix:"?", revenu:"?"},
+  {name:"Tim Cheese", tier:"commun", coll:1, owned:false, img:"", emoji:"🧀", desc:"", prix:"?", revenu:"?"},
+  {name:"Pipi Kiwi", tier:"commun", coll:1, owned:false, img:"", emoji:"🥝", desc:"", prix:"?", revenu:"?"},
+  {name:"Boneca Ambalabu", tier:"rare", coll:1, owned:false, img:"", emoji:"🐸", desc:"", prix:"?", revenu:"?"},
+  {name:"Bandito Bobritto", tier:"rare", coll:1, owned:false, img:"", emoji:"🦝", desc:"", prix:"?", revenu:"?"},
+  {name:"Cappuccino Assassino", tier:"epique", coll:1, owned:false, img:"", emoji:"☕", desc:"", prix:"?", revenu:"?"},
+  {name:"Bambini Crostini", tier:"epique", coll:1, owned:false, img:"", emoji:"🥖", desc:"", prix:"?", revenu:"?"},
+  {name:"Chimpanzini Bananini", tier:"legendaire", coll:1, owned:false, img:"", emoji:"🐵", desc:"", prix:"?", revenu:"?"},
+  {name:"Orangutini Ananassini", tier:"mythique", coll:1, owned:false, img:"", emoji:"🦧", desc:"", prix:"?", revenu:"?"},
+  {name:"Cavallo Virtuoso", tier:"mythique", coll:1, owned:false, img:"", emoji:"🐴", desc:"", prix:"?", revenu:"?"},
+  {name:"Cocofanto Elefanto", tier:"dieu", coll:1, owned:false, img:"", emoji:"🐘", desc:"", prix:"?", revenu:"19K/s"},
+  {name:"Los Tralaleritos", tier:"dieu", coll:1, owned:false, img:"", emoji:"🦈", desc:"", prix:"?", revenu:"?"},
+  {name:"La Vacca Saturno Saturnita", tier:"secret", coll:1, owned:false, img:"", emoji:"🐄", desc:"", prix:"?", revenu:"?"},
+  {name:"Gelato Lumacho", tier:"secret", coll:1, owned:false, img:"", emoji:"🍦", desc:"", prix:"?", revenu:"?"},
+  {name:"Aquarino", tier:"secret", coll:1, owned:false, img:"", emoji:"💧", desc:"", prix:"?", revenu:"?"},
+  {name:"Strawberry Elephant", tier:"og", coll:1, owned:false, img:"", emoji:"🍓", desc:"", prix:"?", revenu:"?"},
+  {name:"Spyder Elephant", tier:"og", coll:1, owned:false, img:"", emoji:"🕷️", desc:"", prix:"?", revenu:"?"},
+  {name:"Skibidi Toilet", tier:"og", coll:1, owned:false, img:"", emoji:"🚽", desc:"", prix:"?", revenu:"?"},
+  {name:"Meowl", tier:"og", coll:1, owned:false, img:"", emoji:"🦉", desc:"", prix:"?", revenu:"?"},
 ];
 
 const gallery = document.getElementById('gallery');
-const countPill = document.getElementById('countPill');
+const compText = document.getElementById('compText');
+const compFill = document.getElementById('compFill');
 const modal = document.getElementById('modal');
-let activeFilter='all', activeColl='all', searchTerm='';
+let activeFilter='all', activeColl='all', activeStatus='all', searchTerm='';
 
 function visible(){
   return COLLECTION.filter(p=>{
     const okTier = activeFilter==='all' || p.tier===activeFilter;
     const okColl = activeColl==='all' || String(p.coll)===String(activeColl);
+    const okStatus = activeStatus==='all' || (activeStatus==='owned'? p.owned : !p.owned);
     const okSearch = p.name.toLowerCase().includes(searchTerm);
-    return okTier && okColl && okSearch;
+    return okTier && okColl && okStatus && okSearch;
   });
 }
 function escape(s){return (s||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))}
@@ -327,26 +379,33 @@ function accBadge(c){
 
 function render(){
   const list = visible();
-  if(countPill) countPill.textContent = `${COLLECTION.length} Brainrot${COLLECTION.length>1?'s':''} dans la collec`;
+  // compteur de complétion
+  const total = COLLECTION.length;
+  const owned = COLLECTION.filter(p=>p.owned).length;
+  const pct = total? Math.round(owned/total*100) : 0;
+  if(compText) compText.textContent = `${owned} / ${total} attrapés · ${pct}%`;
+  if(compFill) compFill.style.width = pct+'%';
+
   gallery.innerHTML = list.map((p,i)=>{
     const t = TIERS[p.tier]||TIERS.commun;
     const idx = COLLECTION.indexOf(p);
-    const spark = (p.tier==='legendaire'||p.tier==='mythique')
+    const spark = (p.owned && (p.tier==='legendaire'||p.tier==='mythique'||p.tier==='dieu'||p.tier==='secret'||p.tier==='og'))
       ? `<span class="sparkle s1">✨</span><span class="sparkle s2">⭐</span>` : '';
+    const badge = p.owned ? accBadge(p.coll) : `<span class="todo-tag">⬜ à attraper</span>`;
     return `
-    <div class="card ${t.cls}" style="--rc:${RC[p.tier]};animation-delay:${i*0.05}s" onclick="openPiece(${idx})">
+    <div class="card ${t.cls} ${p.owned?'':'todo'}" style="--rc:${RC[p.tier]};animation-delay:${i*0.05}s" onclick="openPiece(${idx})">
       <div class="idtag">#${String(idx+1).padStart(3,'0')}</div>
       <div class="stage">
         <div class="halo"></div>
         ${spark}
         <div class="subject"><div class="creature">${subjectHTML(p)}</div></div>
-        ${!p.img?'<div class="ph-note">photo à ajouter</div>':''}
+        ${(p.owned && !p.img)?'<div class="ph-note">photo à ajouter</div>':''}
       </div>
       <div class="info">
         <div class="pname">${escape(p.name)}</div>
         <div class="badges">
           <span class="tier">${t.label}</span>
-          ${accBadge(p.coll)}
+          ${badge}
         </div>
       </div>
     </div>`;
@@ -367,11 +426,11 @@ window.openPiece = function(idx){
       <div class="bigbody">
         <h2>${escape(p.name)}</h2>
         <div class="badges"><span class="tier">${t.label}</span></div>
-        <p class="desc">${escape(p.desc||'Pas encore de petit texte 😄')}</p>
-        <div class="who">🎮 Compte : ${escape(C.name||'?')}</div>
+        <p class="desc">${escape(p.desc||(p.owned?'':'Pas encore attrapé — à dénicher dans le jeu !'))}</p>
+        <div class="who">${p.owned? '🎮 Compte : '+escape(C.name||'?') : '⬜ Pas encore attrapé'}</div>
         <div class="stats">
-          <div class="stat"><div class="k">💪 Force</div><div class="v">${escape(p.power||'—')}</div></div>
-          <div class="stat"><div class="k">💰 Valeur</div><div class="v">${escape(p.value||'—')}</div></div>
+          <div class="stat"><div class="k">💰 Prix</div><div class="v">${escape(p.prix||'?')}</div></div>
+          <div class="stat"><div class="k">📈 Revenu</div><div class="v">${escape(p.revenu||'?')}</div></div>
         </div>
       </div>
     </div>`;
@@ -385,6 +444,11 @@ document.getElementById('chips').addEventListener('click',e=>{
   const b=e.target.closest('.chip'); if(!b)return;
   document.querySelectorAll('#chips .chip').forEach(c=>c.classList.remove('active'));
   b.classList.add('active'); activeFilter=b.dataset.f; render();
+});
+document.getElementById('chipsStatus').addEventListener('click',e=>{
+  const b=e.target.closest('.chip'); if(!b)return;
+  document.querySelectorAll('#chipsStatus .chip').forEach(c=>c.classList.remove('active'));
+  b.classList.add('active'); activeStatus=b.dataset.s; render();
 });
 document.getElementById('chipsColl').addEventListener('click',e=>{
   const b=e.target.closest('.chip'); if(!b)return;
@@ -427,6 +491,9 @@ function openAdd(){
           <option value="epique">Épique</option>
           <option value="legendaire">Légendaire</option>
           <option value="mythique">Mythique</option>
+          <option value="dieu">Dieu Brainrot</option>
+          <option value="secret">Secret</option>
+          <option value="og">OG</option>
         </select></div>
       <div class="field"><label>Quel compte ?</label>
         <select id="f-coll">${accOptions()}</select></div>
@@ -458,7 +525,7 @@ window.savePiece=function(){
   const tier=document.getElementById('f-tier').value;
   const coll=parseInt(document.getElementById('f-coll').value,10);
   const desc=document.getElementById('f-desc').value.trim();
-  COLLECTION.push({name,tier,coll,img:pendingImg,emoji:"🖼️",desc,power:String(Math.floor(Math.random()*400)),value:"? §"});
+  COLLECTION.push({name,tier,coll,owned:true,img:pendingImg,emoji:"🖼️",desc,prix:"?",revenu:"?"});
   closeAdd(); render();
   window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
 };
