@@ -100,6 +100,12 @@ h1{
 .comp-text{font-family:'Fredoka';font-weight:600;font-size:15px;color:#fff}
 .reset-btn{font-family:'Fredoka';font-weight:600;font-size:11.5px;padding:3px 10px;border-radius:20px;border:1px solid rgba(255,120,120,.4);background:rgba(255,80,80,.1);color:#ff9999;cursor:pointer;transition:background .15s}
 .reset-btn:hover{background:rgba(255,80,80,.25)}
+.sync-btn{font-family:'Fredoka';font-weight:600;font-size:11.5px;padding:3px 10px;border-radius:20px;border:1px solid rgba(120,200,255,.45);background:rgba(80,160,255,.12);color:#9cd0ff;cursor:pointer;transition:background .15s}
+.sync-btn:hover{background:rgba(80,160,255,.28)}
+.sync-code{width:100%;background:#f4f2fc;border:2px solid #e6e2f5;border-radius:12px;padding:11px 13px;
+  color:var(--ink);font-family:monospace;font-size:12px;line-height:1.4;resize:vertical;min-height:70px;outline:none;word-break:break-all}
+.sync-step{font-family:'Fredoka';font-weight:600;font-size:13px;color:var(--ink);margin:14px 0 6px;text-align:left}
+.sync-ok{font-family:'Fredoka';font-weight:600;font-size:12.5px;color:#16a34a;text-align:center;margin-top:6px;min-height:16px}
 .comp-bar{width:100%;height:10px;border-radius:999px;background:rgba(255,255,255,.18);overflow:hidden}
 .comp-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#ffd84d,#ff9a5a);transition:width .4s}
 .controls-status{margin-top:4px;gap:8px}
@@ -187,11 +193,12 @@ h1{
 .stat-mut .v{font-weight:700}
 
 /* ---------- MODAL ---------- */
-.modal{position:fixed;inset:0;z-index:100;display:none;place-items:center;padding:20px;
+.modal{position:fixed;inset:0;z-index:100;display:none;padding:20px;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
   background:rgba(20,10,45,.82);backdrop-filter:blur(6px)}
-.modal.open{display:grid;animation:fade .2s ease both}
+.modal.open{display:block;animation:fade .2s ease both}
 @keyframes fade{from{opacity:0}to{opacity:1}}
-.bigcard{max-width:440px;width:100%;background:#fff;border-radius:26px;overflow:hidden;
+.bigcard{max-width:440px;width:100%;margin:0 auto;background:#fff;border-radius:26px;overflow:hidden;
   border:5px solid var(--rc);box-shadow:0 26px 70px rgba(0,0,0,.5);
   animation:popbig .3s cubic-bezier(.2,1.3,.4,1) both}
 @keyframes popbig{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
@@ -214,7 +221,7 @@ h1{
 .close:hover{transform:scale(1.08)}
 
 /* ---------- ADD FORM ---------- */
-.form-card{max-width:420px;width:100%;background:#fff;border-radius:24px;padding:26px;position:relative;
+.form-card{max-width:420px;width:100%;margin:0 auto;background:#fff;border-radius:24px;padding:26px;position:relative;
   color:var(--ink);box-shadow:0 26px 70px rgba(0,0,0,.5);animation:popbig .3s cubic-bezier(.2,1.3,.4,1) both}
 .form-card h2{font-family:'Fredoka';font-weight:700;font-size:23px;text-align:center;margin-bottom:4px}
 .form-card p.sub{text-align:center;font-family:'Nunito';font-weight:700;color:var(--ink-soft);margin-bottom:18px;font-size:14px}
@@ -286,10 +293,54 @@ footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;colo
               1px -1px 0 rgba(0,0,0,.9),-1px 1px 0 rgba(0,0,0,.9);
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-@media (max-width:520px){
-  .gallery{grid-template-columns:1fr 1fr;gap:14px}
-  .stage{height:165px}.subject{height:150px}.subject img{max-height:140px}.ph{font-size:68px}
-  .pname{font-size:16px}
+@media (max-width:620px){
+  .wrap{padding:0 12px}
+  header{padding:14px 14px 2px}
+  /* controls plus compacts */
+  .controls{padding:10px 10px 12px}
+  .controls-inner{gap:7px}
+  .search{flex:1 1 100%;max-width:none}
+  .search input{font-size:15px}
+  .chips{gap:6px}
+  .chip{font-size:12.5px;padding:6px 11px;border-width:1.5px}
+  .add-btn{font-size:12.5px;padding:7px 14px}
+  .coll-label{font-size:12.5px;width:100%;text-align:center;margin:0 0 2px}
+  .chip-acc{padding:5px 11px 5px 24px!important}
+  .chip-acc::before{left:9px;width:9px;height:9px}
+  .ca-top{font-size:10px}.ca-name{font-size:12.5px}
+  .completion{gap:5px}
+  .comp-text{font-size:13.5px}
+  /* gallery 2 colonnes serrées */
+  .gallery{grid-template-columns:1fr 1fr;gap:12px;padding:6px 0 60px}
+  .card{border-width:3px;border-radius:18px}
+  .stage{height:150px}.subject{height:136px}.subject img{max-height:128px}.ph{font-size:60px}
+  .pname{font-size:15px}
+  .card-vals{font-size:13px;gap:4px}
+  .catch-btn{font-size:12px;width:calc(100% - 16px);margin:8px 8px 5px;padding:8px 6px}
+  .seen-btn{font-size:11px;width:calc(100% - 16px)!important;margin:2px 8px 6px!important;padding:5px 8px!important}
+  .coll-picker{padding:4px 8px 9px}
+  .pick-acc{min-width:calc(50% - 4px);font-size:12px;padding:9px 6px}
+  .pick-remove{padding:9px}
+  /* modal */
+  .modal{padding:12px}
+  .bigstage{height:190px}.bigstage .halo{width:160px;height:160px}
+  .bigstage img{max-height:160px}.bigstage .ph{font-size:92px}
+  .bigbody{padding:4px 18px 24px}
+  .bigbody h2{font-size:23px}
+  .desc{font-size:15px;margin:12px 0 14px}
+  .stat{min-width:0;flex:1 1 calc(50% - 5px);padding:9px 10px}
+  .stat .v{font-size:18px}
+  .mut-btn{font-size:13px;padding:6px 12px}
+  .mut-picker{gap:6px}
+  /* form & sync */
+  .form-card{padding:20px 18px}
+  .field input,.field textarea,.field select{font-size:16px}
+}
+@media (max-width:380px){
+  .gallery{grid-template-columns:1fr 1fr;gap:10px}
+  .stage{height:132px}.subject{height:120px}.subject img{max-height:112px}.ph{font-size:52px}
+  .pname{font-size:14px}
+  .card-vals{font-size:12px}
 }
 </style>
 </head>
@@ -306,6 +357,7 @@ footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;colo
   <div class="completion">
     <div style="display:flex;align-items:center;gap:10px">
       <div class="comp-text" id="compText">0 / 0 attrapés</div>
+      <button class="sync-btn" onclick="openSync()">💾 Sauver / Charger</button>
       <button class="reset-btn" onclick="resetCollection()">🗑 Vider</button>
     </div>
     <div class="comp-bar"><div class="comp-fill" id="compFill" style="width:0%"></div></div>
@@ -353,6 +405,7 @@ footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;colo
 
 <div class="modal" id="modal"></div>
 <div class="modal" id="addModal"></div>
+<div class="modal" id="syncModal"></div>
 
 <footer>Musée du Brainrot — la collec de Leomz 🧠✨</footer>
 
@@ -1142,6 +1195,58 @@ window.openPiece = function(idx){
 window.closeModal = ()=>modal.classList.remove('open');
 modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});
 
+/* ---- Sauvegarde / synchronisation entre appareils ---- */
+const syncModal=document.getElementById('syncModal');
+function buildSyncCode(){
+  try{
+    const payload=JSON.stringify({o:loadOwned(),c:loadCaught(),m:loadMuts()});
+    return btoa(unescape(encodeURIComponent(payload)));
+  }catch(e){return'';}
+}
+window.openSync=function(){
+  syncModal.innerHTML=
+    '<div class="form-card">'
+    +'<button class="close" onclick="closeSync()">\xd7</button>'
+    +'<h2>💾 Sauvegarde</h2>'
+    +'<p class="sub">Pour retrouver ta collection sur un autre appareil (téléphone ↔ ordi)</p>'
+    +'<div class="sync-step">1️⃣ Sur l\'appareil qui a ta collection : copie ce code</div>'
+    +'<textarea class="sync-code" id="syncOut" readonly onclick="this.select()">'+buildSyncCode()+'</textarea>'
+    +'<button class="btn primary" style="margin-top:8px;width:100%" onclick="copySync()">📋 Copier le code</button>'
+    +'<div class="sync-ok" id="syncMsg"></div>'
+    +'<div class="sync-step">2️⃣ Sur l\'autre appareil : colle le code ici et charge</div>'
+    +'<textarea class="sync-code" id="syncIn" placeholder="Colle ton code ici…"></textarea>'
+    +'<div class="form-actions">'
+    +'<button class="btn ghost" onclick="closeSync()">Annuler</button>'
+    +'<button class="btn primary" onclick="doImport()">⬇️ Charger</button>'
+    +'</div>'
+    +'</div>';
+  syncModal.classList.add('open');
+};
+window.closeSync=()=>syncModal.classList.remove('open');
+syncModal.addEventListener('click',e=>{if(e.target===syncModal)closeSync()});
+window.copySync=function(){
+  const ta=document.getElementById('syncOut');
+  const msg=document.getElementById('syncMsg');
+  ta.select();ta.setSelectionRange(0,99999);
+  const done=()=>{if(msg)msg.textContent='✓ Code copié !';};
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(ta.value).then(done).catch(()=>{try{document.execCommand('copy');done();}catch(e){}});
+  }else{try{document.execCommand('copy');done();}catch(e){}}
+};
+window.doImport=function(){
+  const code=(document.getElementById('syncIn').value||'').trim();
+  if(!code){alert('Colle d\'abord un code dans la case.');return;}
+  let data;
+  try{data=JSON.parse(decodeURIComponent(escape(atob(code))));}
+  catch(e){alert('Ce code n\'est pas valide. Recopie-le en entier.');return;}
+  if(!confirm('Charger cette collection ? Ça remplacera ce qui est sur cet appareil.'))return;
+  if(data.o)localStorage.setItem(LS_KEY,JSON.stringify(data.o));
+  if(data.c)localStorage.setItem(LS_CAUGHT,JSON.stringify(data.c));
+  if(data.m)localStorage.setItem(LS_MUT,JSON.stringify(data.m));
+  localStorage.setItem(LS_VER,'2');
+  location.reload();
+};
+
 /* filtres + recherche */
 document.getElementById('chips').addEventListener('click',e=>{
   const b=e.target.closest('.chip'); if(!b)return;
@@ -1159,7 +1264,7 @@ document.getElementById('chipsColl').addEventListener('click',e=>{
   b.classList.add('active'); activeColl=b.dataset.c; render();
 });
 document.getElementById('search').addEventListener('input',e=>{searchTerm=e.target.value.toLowerCase().trim();render();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeAdd();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeAdd();closeSync();}});
 
 /* construit les boutons "comptes" et les options du formulaire depuis COLLECTIONS */
 function buildAccounts(){
