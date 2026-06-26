@@ -133,6 +133,14 @@ MANUAL = {
     "Trenozztruzzo Turbo 4000":       "trenostruzzo-turbo-4000",
     "Triplito Tralaleritos (Secret)": "triplito-tralaleritos",
     "Los Jolly Combinasionas":        "los-jolly-combinasionas",
+    # Corrections supplémentaires
+    "Bombadini Tortinii":             "bombardini-tortinii",
+    "Borbadiro Cocrodilo":            "bombardiro-crocodilo",
+    "Chef Crabracadaba":              "chef-crabracadabra",
+    "Metteo":                         "matteo",
+    "Talpa Di Fero":                  "talpa-di-ferro",
+    "Te Te Te Te Sahur":              "te-te-te-sahur",
+    "Tim Cheesee":                    "tim-cheese",
     # Nouvelles corrections (2e passe)
     "Cupkake Koala":                  "cupcake-koala",
     "Trullimero Trulicina":           "trulimero-trulicina",
