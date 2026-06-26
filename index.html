@@ -936,7 +936,7 @@ function escape(s){return (s||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','
 function fmtVal(v){return(!v||v==='?')?null:(v[0]==='$'?v:'$'+v);}
 function valColor(v){
   if(!v||v==='?')return'#9ca3af';
-  return v.includes('/s') ? '#fde047' : '#4ade80';
+  return v.includes('/s') ? '#ffff00' : '#39ff14';
 }
 function subjectHTML(p){
   if(p.img){
