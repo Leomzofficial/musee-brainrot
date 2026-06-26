@@ -1390,14 +1390,22 @@ applyCaught();
 applyMuts();
 buildAccounts();
 
-/* page d'accueil : enregistrer le listener EN PREMIER avant tout render */
+/* page d'accueil */
 const intro=document.getElementById('intro');
-document.body.style.overflow='hidden';
+function showIntro(){
+  intro.style.display='';
+  intro.classList.remove('hide');
+  document.body.style.overflow='hidden';
+}
+showIntro(); // s'assure que l'intro est visible même après bfcache
 document.getElementById('enterBtn').addEventListener('click',()=>{
   intro.classList.add('hide');
   document.body.style.overflow='';
   setTimeout(()=>{intro.style.display='none';},650);
 });
+// bfcache : quand le navigateur mobile restaure la page depuis son cache,
+// la galerie est déjà rendue et l'intro était cachée → on la réaffiche.
+window.addEventListener('pageshow',e=>{if(e.persisted)showIntro();});
 
 /* image d'accueil selon l'écran */
 (function(){
