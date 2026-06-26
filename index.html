@@ -165,6 +165,13 @@ h1{
 .card.todo .creature{opacity:.55}
 .todo-tag{display:inline-flex;align-items:center;gap:4px;font-family:'Fredoka';font-weight:600;font-size:11px;
   color:var(--ink-soft);background:#eceaf3;border:1px dashed #c3bce0;border-radius:999px;padding:3px 10px}
+.seen-tag{display:inline-flex;align-items:center;gap:4px;font-family:'Fredoka';font-weight:600;font-size:11px;
+  color:#c4b5fd;background:rgba(139,92,246,.18);border:1px dashed #7c3aed;border-radius:999px;padding:3px 10px}
+.seen-btn{font-family:'Fredoka';font-weight:700;font-size:12.5px;border:2px solid rgba(139,92,246,.35);
+  background:transparent;color:rgba(196,181,253,.7);border-radius:999px;padding:5px 14px;
+  cursor:pointer;transition:all .15s;display:block;width:calc(100% - 28px);margin:2px 14px 6px}
+.seen-btn:hover{background:rgba(139,92,246,.18);color:#c4b5fd}
+.seen-btn.active{background:rgba(139,92,246,.28);color:#e9d5ff;border-color:#a78bfa}
 
 /* ---------- MODAL ---------- */
 .modal{position:fixed;inset:0;z-index:100;display:none;place-items:center;padding:20px;
@@ -820,20 +827,25 @@ let COLLECTION = [
   {name:"Ventoliero Pavonero", tier:"og", owned:false, coll:1, img:"photos/ventoliero-pavonero.jpg", emoji:"👑", desc:"Ventoliero Pavonero est un Brainrot Secret qui ressemble à un magnifique paon. Il déploie ses plumes vibrants de façon dramatique, incarnant l'élégance italienne flamboyante et le chaos aviaire exagéré.", prix:"$15.5B", revenu:"$65.0M/s"},
 ];
 
-const LS_KEY = 'brainrot_owned';
-const LS_VER = 'brainrot_ver';
-// Si la version enregistrée est différente, on repart de zéro
+const LS_KEY    = 'brainrot_owned';
+const LS_CAUGHT = 'brainrot_caught';
+const LS_VER    = 'brainrot_ver';
 if(localStorage.getItem(LS_VER) !== '2') {
   localStorage.removeItem(LS_KEY);
+  localStorage.removeItem(LS_CAUGHT);
   localStorage.setItem(LS_VER, '2');
 }
 function loadOwned(){try{return JSON.parse(localStorage.getItem(LS_KEY)||'{}');}catch(e){return {};}}
 function saveOwned(){const d={};COLLECTION.forEach(p=>{if(p.owned)d[p.name]=p.coll;});localStorage.setItem(LS_KEY,JSON.stringify(d));}
 function applyOwned(){const d=loadOwned();COLLECTION.forEach(p=>{const v=d[p.name];if(v){p.owned=true;if(v>=1&&v<=5)p.coll=v;}});}
+function loadCaught(){try{return JSON.parse(localStorage.getItem(LS_CAUGHT)||'[]');}catch(e){return[];}}
+function saveCaught(){localStorage.setItem(LS_CAUGHT,JSON.stringify(COLLECTION.filter(p=>p.caught&&!p.owned).map(p=>p.name)));}
+function applyCaught(){const d=loadCaught();COLLECTION.forEach(p=>{if(!p.owned)p.caught=d.includes(p.name);});}
 function resetCollection(){
   if(!confirm('Vider toute la collection ? Cette action est irréversible.'))return;
   localStorage.removeItem(LS_KEY);
-  COLLECTION.forEach(p=>{p.owned=false;p.coll=1;});
+  localStorage.removeItem(LS_CAUGHT);
+  COLLECTION.forEach(p=>{p.owned=false;p.caught=false;p.coll=1;});
   updateCounter();rerender();
 }
 
@@ -845,8 +857,9 @@ let activeFilter='all', activeColl='all', activeStatus='all', searchTerm='';
 
 function updateCounter(){
   const total=COLLECTION.length, owned=COLLECTION.filter(p=>p.owned).length;
+  const caught=COLLECTION.filter(p=>p.caught&&!p.owned).length;
   const pct=total?Math.round(owned/total*100):0;
-  if(compText)compText.textContent=`${owned} / ${total} attrapés · ${pct}%`;
+  if(compText)compText.textContent=`${owned} / ${total} attrapés · ${pct}%`+(caught?` · 👁 ${caught} déjà vu${caught>1?'s':''}` :'');
   if(compFill)compFill.style.width=pct+'%';
 }
 function rerender(){const y=window.scrollY;gallery.classList.add('no-anim');render();window.scrollTo(0,y);requestAnimationFrame(()=>gallery.classList.remove('no-anim'));}
@@ -855,21 +868,23 @@ function patchCard(idx){
   const card=gallery.querySelector(`[data-idx="${idx}"]`);
   if(!card)return;
   const Co=COLLECTIONS[p.coll]||{};
-  card.classList.toggle('todo',!p.owned);
+  card.classList.toggle('todo',!p.owned&&!p.caught);
   card.querySelectorAll('.sparkle').forEach(s=>s.remove());
   if(p.owned&&['legendaire','mythique','dieu','secret','og'].includes(p.tier))
     card.querySelector('.stage').insertAdjacentHTML('afterbegin','<span class="sparkle s1">✨</span><span class="sparkle s2">⭐</span>');
   const badges=card.querySelector('.badges');
-  if(badges){const old=badges.querySelector('.acc,.todo-tag');if(old)old.outerHTML=p.owned?accBadge(p.coll):'<span class="todo-tag">⬜ à attraper</span>';}
+  if(badges){const old=badges.querySelector('.acc,.todo-tag,.seen-tag');if(old)old.outerHTML=p.owned?accBadge(p.coll):p.caught?'<span class="seen-tag">👁 Déjà vu</span>':'<span class="todo-tag">⬜ à attraper</span>';}
   const cre=card.querySelector('.creature');
-  if(cre)cre.style.opacity=p.owned?'':'.55';
+  if(cre)cre.style.opacity=(p.owned||p.caught)?'':'.55';
   const btn=card.querySelector('.catch-btn');
   if(btn){
     btn.className='catch-btn'+(p.owned?' owned':'');
-    btn.textContent=p.owned?'✓ '+( Co.name||'?'):'⭐ Déjà attrapé ?';
+    btn.textContent=p.owned?'✓ '+(Co.name||'?'):'⭐ Mettre dans une base';
     if(p.owned&&Co.color)btn.style.setProperty('--c',Co.color);
     else btn.style.removeProperty('--c');
   }
+  const sb=card.querySelector('.seen-btn');
+  if(sb){sb.className='seen-btn'+(p.caught?' active':'');sb.textContent=p.caught?'👁 Déjà vu ✓':'👁 Déjà vu';}
   const picker=card.querySelector('.coll-picker');
   if(picker)picker.style.display='none';
 }
@@ -882,8 +897,8 @@ window.startPick=function(idx,e){
 };
 window.pickColl=function(idx,coll,e){
   e.stopPropagation();
-  COLLECTION[idx].owned=true;COLLECTION[idx].coll=coll;
-  saveOwned();updateCounter();
+  COLLECTION[idx].owned=true;COLLECTION[idx].caught=false;COLLECTION[idx].coll=coll;
+  saveOwned();saveCaught();updateCounter();
   if(activeStatus!=='all'){rerender();return;}
   patchCard(idx);
 };
@@ -895,12 +910,24 @@ window.removePick=function(idx,e){
   if(activeStatus!=='all'){rerender();return;}
   patchCard(idx);
 };
+window.toggleCaught=function(idx,e){
+  e.stopPropagation();
+  const p=COLLECTION[idx];
+  if(p.owned)return;
+  p.caught=!p.caught;
+  saveCaught();updateCounter();
+  if(activeStatus==='owned'||(activeStatus==='todo'&&p.caught)){rerender();return;}
+  patchCard(idx);
+};
 
 function visible(){
   return COLLECTION.filter(p=>{
     const okTier = activeFilter==='all' || p.tier===activeFilter;
     const okColl = activeColl==='all' || (p.owned && String(p.coll)===String(activeColl));
-    const okStatus = activeStatus==='all' || (activeStatus==='owned'? p.owned : !p.owned);
+    const okStatus = activeStatus==='all'
+      || (activeStatus==='owned' ? p.owned
+        : activeStatus==='todo' ? (!p.owned && !p.caught)
+        : !p.owned);
     const okSearch = p.name.toLowerCase().includes(searchTerm);
     return okTier && okColl && okStatus && okSearch;
   });
@@ -939,9 +966,10 @@ function render(){
     const Co = COLLECTIONS[p.coll]||{};
     const spark = (p.owned && (p.tier==='legendaire'||p.tier==='mythique'||p.tier==='dieu'||p.tier==='secret'||p.tier==='og'))
       ? `<span class="sparkle s1">✨</span><span class="sparkle s2">⭐</span>` : '';
-    const badge = p.owned ? accBadge(p.coll) : `<span class="todo-tag">⬜ à attraper</span>`;
+    const badge = p.owned ? accBadge(p.coll) : p.caught ? `<span class="seen-tag">👁 Déjà vu</span>` : `<span class="todo-tag">⬜ à attraper</span>`;
     const catchStyle = p.owned && Co.color ? ` style="--c:${Co.color}"` : '';
-    const catchLabel = p.owned ? `✓ ${escape(Co.name||'?')}` : '⭐ Déjà attrapé ?';
+    const catchLabel = p.owned ? `✓ ${escape(Co.name||'?')}` : '⭐ Mettre dans une base';
+    const seenLabel = p.caught ? '👁 Déjà vu ✓' : '👁 Déjà vu';
     const pickerBtns = Object.entries(COLLECTIONS).map(([n,C])=>
       `<button class="pick-acc" style="--c:${C.color}" onclick="pickColl(${idx},${n},event)">${escape(C.name)}</button>`
     ).join('');
@@ -952,12 +980,12 @@ function render(){
       revFmt?`<span style="color:${valColor(p.revenu)}">📈 ${escape(revFmt)}</span>`:''
     }</div>`:'';
     return `
-    <div class="card ${t.cls} ${p.owned?'':'todo'}" data-idx="${idx}" style="--rc:${RC[p.tier]};animation-delay:${Math.min(i*0.04,0.6)}s" onclick="openPiece(${idx})">
+    <div class="card ${t.cls} ${p.owned?'':(p.caught?'':'todo')}" data-idx="${idx}" style="--rc:${RC[p.tier]};animation-delay:${Math.min(i*0.04,0.6)}s" onclick="openPiece(${idx})">
       <div class="idtag">#${String(idx+1).padStart(3,'0')}</div>
       <div class="stage">
         <div class="halo"></div>
         ${spark}
-        <div class="subject"><div class="creature">${subjectHTML(p)}</div></div>
+        <div class="subject"><div class="creature" style="opacity:${(p.owned||p.caught)?'1':'.55'}">${subjectHTML(p)}</div></div>
         ${(p.owned && !p.img)?'<div class="ph-note">photo à ajouter</div>':''}
       </div>
       <div class="info">
@@ -969,6 +997,7 @@ function render(){
         </div>
       </div>
       <button class="catch-btn ${p.owned?'owned':''}"${catchStyle} onclick="startPick(${idx},event)">${catchLabel}</button>
+      ${!p.owned?`<button class="seen-btn${p.caught?' active':''}" onclick="toggleCaught(${idx},event)">${seenLabel}</button>`:''}
       <div class="coll-picker" style="display:none">
         ${pickerBtns}
         <button class="pick-remove" onclick="removePick(${idx},event)">🗑 Retirer</button>
@@ -991,8 +1020,8 @@ window.openPiece = function(idx){
       <div class="bigbody">
         <h2>${escape(p.name)}</h2>
         <div class="badges"><span class="tier">${t.label}</span></div>
-        <p class="desc">${escape(p.desc||(p.owned?'':'Pas encore attrapé — à dénicher dans le jeu !'))}</p>
-        <div class="who">${p.owned? '🎮 Compte : '+escape(C.name||'?') : '⬜ Pas encore attrapé'}</div>
+        <p class="desc">${escape(p.desc||(!p.owned&&!p.caught?'Pas encore attrapé — à dénicher dans le jeu !':''))}</p>
+        <div class="who">${p.owned?'🎮 Compte : '+escape(C.name||'?'):p.caught?'👁 Déjà attrapé, pas dans une base':'⬜ Pas encore attrapé'}</div>
         <div class="stats">
           <div class="stat"><div class="k">💰 Prix</div><div class="v">${escape(p.prix||'?')}</div></div>
           <div class="stat"><div class="k">📈 Revenu</div><div class="v">${escape(p.revenu||'?')}</div></div>
@@ -1096,6 +1125,7 @@ window.savePiece=function(){
 };
 
 applyOwned();
+applyCaught();
 buildAccounts();
 
 /* page d'accueil : enregistrer le listener EN PREMIER avant tout render */
