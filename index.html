@@ -1387,13 +1387,18 @@ render();
     cloudRef = firebase.database().ref('leomz');
   }catch(e){console.warn('Firebase init KO',e);return;}
 
+  const seedNow=()=>{ if(cloudRef)cloudRef.set({o:loadOwned(),c:loadCaught(),m:loadMuts(),t:Date.now()}).catch(()=>{}); };
   cloudRef.on('value', snap=>{
-    if(!snap.exists()){
-      // Premier démarrage : la base est vide → on l'amorce avec ce qu'a cet appareil.
-      if(cloudRef)cloudRef.set({o:loadOwned(),c:loadCaught(),m:loadMuts(),t:Date.now()}).catch(()=>{});
+    const data=snap.val()||{};
+    const remoteVide = !snap.exists() || !data.o || Object.keys(data.o).length===0;
+    const localPlein = Object.keys(loadOwned()).length>0;
+    // Sécurité : si le cloud est vide mais que CET appareil a une collection,
+    // on envoie la nôtre au lieu de se faire écraser par du vide.
+    if(remoteVide){
+      if(localPlein) seedNow();
+      else if(!snap.exists()) seedNow();
       return;
     }
-    const data=snap.val()||{};
     applyingRemote=true;
     localStorage.setItem(LS_KEY,   JSON.stringify(data.o||{}));
     localStorage.setItem(LS_CAUGHT,JSON.stringify(data.c||[]));
