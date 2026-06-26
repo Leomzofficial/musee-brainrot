@@ -215,19 +215,46 @@ h1{
 footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;color:#c5b8e8;font-family:'Fredoka';font-weight:500;font-size:13px;opacity:.8}
 
 .catch-btn{
-  display:block;width:calc(100% - 28px);margin:10px 14px 8px;
+  display:block;width:calc(100% - 28px);margin:10px 14px 6px;
   font-family:'Fredoka';font-weight:600;font-size:13.5px;
-  padding:9px 10px;border-radius:14px;border:none;cursor:pointer;
+  padding:9px 10px;border-radius:14px;border:1.5px solid transparent;cursor:pointer;
   background:rgba(255,255,255,.1);color:#d9ccff;
-  transition:transform .12s,background .15s,color .15s;
+  transition:transform .12s,background .15s,color .15s,border-color .15s;
   position:relative;z-index:4;
 }
 .catch-btn:hover{transform:translateY(-2px);background:rgba(255,255,255,.18)}
 .catch-btn.owned{
-  background:linear-gradient(90deg,#ffcd38,#34c77b);
-  color:#1a3d28;
+  border-color:var(--c,#34c77b);
+  color:var(--c,#34c77b);
+  background:rgba(255,255,255,.07);
 }
-.catch-btn.owned:hover{transform:translateY(-2px);filter:brightness(1.08)}
+.catch-btn.owned:hover{transform:translateY(-2px);background:rgba(255,255,255,.14)}
+.coll-picker{
+  display:none;flex-wrap:wrap;gap:5px;
+  padding:4px 14px 10px;
+}
+.pick-acc{
+  flex:1;min-width:calc(50% - 5px);
+  font-family:'Fredoka';font-weight:600;font-size:12px;
+  padding:7px 6px;border-radius:10px;
+  border:1.5px solid var(--c,#888);
+  background:rgba(255,255,255,.05);color:#d9ccff;cursor:pointer;
+  transition:background .12s,transform .1s,color .1s;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.pick-acc:hover{background:var(--c,#888);color:#111;transform:translateY(-1px)}
+.pick-remove{
+  width:100%;margin-top:2px;
+  font-family:'Fredoka';font-weight:600;font-size:12px;
+  padding:7px;border-radius:10px;border:none;
+  background:rgba(255,80,80,.12);color:#ff8080;cursor:pointer;
+  transition:background .12s;
+}
+.pick-remove:hover{background:rgba(255,80,80,.28)}
+.card-vals{
+  font-family:'Fredoka';font-size:12px;font-weight:500;
+  color:#a89fcc;display:flex;gap:10px;justify-content:center;margin-bottom:5px;
+}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (max-width:520px){
   .gallery{grid-template-columns:1fr 1fr;gap:14px}
@@ -704,8 +731,8 @@ let COLLECTION = [
 
 const LS_KEY = 'brainrot_owned';
 function loadOwned(){try{return JSON.parse(localStorage.getItem(LS_KEY)||'{}');}catch(e){return {};}}
-function saveOwned(){const d={};COLLECTION.forEach(p=>{if(p.owned)d[p.name]=1;});localStorage.setItem(LS_KEY,JSON.stringify(d));}
-function applyOwned(){const d=loadOwned();COLLECTION.forEach(p=>{if(d[p.name])p.owned=true;});}
+function saveOwned(){const d={};COLLECTION.forEach(p=>{if(p.owned)d[p.name]=p.coll;});localStorage.setItem(LS_KEY,JSON.stringify(d));}
+function applyOwned(){const d=loadOwned();COLLECTION.forEach(p=>{const v=d[p.name];if(v){p.owned=true;if(v>=1&&v<=5)p.coll=v;}});}
 
 const gallery = document.getElementById('gallery');
 const compText = document.getElementById('compText');
@@ -713,35 +740,57 @@ const compFill = document.getElementById('compFill');
 const modal = document.getElementById('modal');
 let activeFilter='all', activeColl='all', activeStatus='all', searchTerm='';
 
-window.toggleOwned = function(idx, e) {
-  e.stopPropagation();
-  COLLECTION[idx].owned = !COLLECTION[idx].owned;
-  saveOwned();
-  // Mise à jour compteur
-  const total = COLLECTION.length;
-  const owned = COLLECTION.filter(p=>p.owned).length;
-  const pct = total? Math.round(owned/total*100) : 0;
-  if(compText) compText.textContent = `${owned} / ${total} attrapés · ${pct}%`;
-  if(compFill) compFill.style.width = pct+'%';
-  // Re-render sans animation si filtre actif, sinon mise à jour ciblée
-  if(activeStatus!=='all'){const y=window.scrollY;gallery.classList.add('no-anim');render();window.scrollTo(0,y);requestAnimationFrame(()=>gallery.classList.remove('no-anim'));return;}
-  // Mise à jour ciblée de la carte
-  const p = COLLECTION[idx];
-  const t = TIERS[p.tier]||TIERS.commun;
-  const card = gallery.querySelector(`[data-idx="${idx}"]`);
-  if(!card) return;
+function updateCounter(){
+  const total=COLLECTION.length, owned=COLLECTION.filter(p=>p.owned).length;
+  const pct=total?Math.round(owned/total*100):0;
+  if(compText)compText.textContent=`${owned} / ${total} attrapés · ${pct}%`;
+  if(compFill)compFill.style.width=pct+'%';
+}
+function rerender(){const y=window.scrollY;gallery.classList.add('no-anim');render();window.scrollTo(0,y);requestAnimationFrame(()=>gallery.classList.remove('no-anim'));}
+function patchCard(idx){
+  const p=COLLECTION[idx];
+  const card=gallery.querySelector(`[data-idx="${idx}"]`);
+  if(!card)return;
+  const Co=COLLECTIONS[p.coll]||{};
   card.classList.toggle('todo',!p.owned);
-  // Sparkles
   card.querySelectorAll('.sparkle').forEach(s=>s.remove());
-  if(p.owned&&['legendaire','mythique','dieu','secret','og'].includes(p.tier)){
+  if(p.owned&&['legendaire','mythique','dieu','secret','og'].includes(p.tier))
     card.querySelector('.stage').insertAdjacentHTML('afterbegin','<span class="sparkle s1">✨</span><span class="sparkle s2">⭐</span>');
-  }
-  // Badge compte
   const badges=card.querySelector('.badges');
   if(badges){const old=badges.querySelector('.acc,.todo-tag');if(old)old.outerHTML=p.owned?accBadge(p.coll):'<span class="todo-tag">⬜ à attraper</span>';}
-  // Bouton
+  const cre=card.querySelector('.creature');
+  if(cre)cre.style.opacity=p.owned?'':'.55';
   const btn=card.querySelector('.catch-btn');
-  if(btn){btn.className='catch-btn'+(p.owned?' owned':'');btn.textContent=p.owned?'✓ Attrapé !':'⭐ Déjà attrapé ?';}
+  if(btn){
+    btn.className='catch-btn'+(p.owned?' owned':'');
+    btn.textContent=p.owned?'✓ '+( Co.name||'?'):'⭐ Déjà attrapé ?';
+    if(p.owned&&Co.color)btn.style.setProperty('--c',Co.color);
+    else btn.style.removeProperty('--c');
+  }
+  const picker=card.querySelector('.coll-picker');
+  if(picker)picker.style.display='none';
+}
+window.startPick=function(idx,e){
+  e.stopPropagation();
+  const card=gallery.querySelector(`[data-idx="${idx}"]`);
+  if(!card)return;
+  const picker=card.querySelector('.coll-picker');
+  if(picker)picker.style.display=picker.style.display==='none'?'flex':'none';
+};
+window.pickColl=function(idx,coll,e){
+  e.stopPropagation();
+  COLLECTION[idx].owned=true;COLLECTION[idx].coll=coll;
+  saveOwned();updateCounter();
+  if(activeStatus!=='all'){rerender();return;}
+  patchCard(idx);
+};
+window.removePick=function(idx,e){
+  e.stopPropagation();
+  if(!COLLECTION[idx].owned){const c=gallery.querySelector(`[data-idx="${idx}"] .coll-picker`);if(c)c.style.display='none';return;}
+  COLLECTION[idx].owned=false;
+  saveOwned();updateCounter();
+  if(activeStatus!=='all'){rerender();return;}
+  patchCard(idx);
 };
 
 function visible(){
@@ -766,20 +815,22 @@ function accBadge(c){
 }
 
 function render(){
+  updateCounter();
   const list = visible();
-  // compteur de complétion
-  const total = COLLECTION.length;
-  const owned = COLLECTION.filter(p=>p.owned).length;
-  const pct = total? Math.round(owned/total*100) : 0;
-  if(compText) compText.textContent = `${owned} / ${total} attrapés · ${pct}%`;
-  if(compFill) compFill.style.width = pct+'%';
-
   gallery.innerHTML = list.map((p,i)=>{
     const t = TIERS[p.tier]||TIERS.commun;
     const idx = COLLECTION.indexOf(p);
+    const Co = COLLECTIONS[p.coll]||{};
     const spark = (p.owned && (p.tier==='legendaire'||p.tier==='mythique'||p.tier==='dieu'||p.tier==='secret'||p.tier==='og'))
       ? `<span class="sparkle s1">✨</span><span class="sparkle s2">⭐</span>` : '';
     const badge = p.owned ? accBadge(p.coll) : `<span class="todo-tag">⬜ à attraper</span>`;
+    const catchStyle = p.owned && Co.color ? ` style="--c:${Co.color}"` : '';
+    const catchLabel = p.owned ? `✓ ${escape(Co.name||'?')}` : '⭐ Déjà attrapé ?';
+    const pickerBtns = Object.entries(COLLECTIONS).map(([n,C])=>
+      `<button class="pick-acc" style="--c:${C.color}" onclick="pickColl(${idx},${n},event)">${escape(C.name)}</button>`
+    ).join('');
+    const vals = (p.prix&&p.prix!=='?'||p.revenu&&p.revenu!=='?')
+      ? `<div class="card-vals"><span>💰 ${escape(p.prix||'?')}</span><span>📈 ${escape(p.revenu||'?')}</span></div>` : '';
     return `
     <div class="card ${t.cls} ${p.owned?'':'todo'}" data-idx="${idx}" style="--rc:${RC[p.tier]};animation-delay:${i*0.05}s" onclick="openPiece(${idx})">
       <div class="idtag">#${String(idx+1).padStart(3,'0')}</div>
@@ -791,12 +842,17 @@ function render(){
       </div>
       <div class="info">
         <div class="pname">${escape(p.name)}</div>
+        ${vals}
         <div class="badges">
           <span class="tier">${t.label}</span>
           ${badge}
         </div>
       </div>
-      <button class="catch-btn ${p.owned?'owned':''}" onclick="toggleOwned(${idx},event)">${p.owned?'✓ Attrapé !':'⭐ Déjà attrapé ?'}</button>
+      <button class="catch-btn ${p.owned?'owned':''}"${catchStyle} onclick="startPick(${idx},event)">${catchLabel}</button>
+      <div class="coll-picker" style="display:none">
+        ${pickerBtns}
+        <button class="pick-remove" onclick="removePick(${idx},event)">🗑 Retirer</button>
+      </div>
     </div>`;
   }).join('');
   if(!list.length){
