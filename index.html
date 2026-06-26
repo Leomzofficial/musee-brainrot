@@ -22,10 +22,10 @@ body{
   background:linear-gradient(160deg,#190d3c,#2a1456 60%,#3a1a4f);
   -webkit-font-smoothing:antialiased;overflow-x:hidden;
 }
-/* fond d'écran : le grand visuel du musée, fixe ; voile plus clair en haut
-   (pour voir le titre) et plus sombre vers le bas (pour lire les cartes) */
+/* fond d'écran : le grand visuel du musée, fixe ; voile léger pour qu'on le
+   voie partout, un peu plus dense vers le bas pour garder les cartes lisibles */
 .bg{position:fixed;inset:0;z-index:0;pointer-events:none;
-  background:linear-gradient(rgba(12,6,30,.30) 0%, rgba(12,6,30,.68) 34%, rgba(12,6,30,.85) 100%),
+  background:linear-gradient(rgba(8,4,22,.16) 0%, rgba(8,4,22,.30) 42%, rgba(8,4,22,.52) 100%),
              url('titre.jpg') top center / cover no-repeat}
 .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 18px}
 
@@ -54,8 +54,8 @@ h1{
 }
 
 /* ---------- CONTROLS ---------- */
-.controls{position:sticky;top:0;z-index:30;padding:14px 18px 16px;margin:10px 0 6px;
-  background:linear-gradient(180deg,var(--bg1) 72%,transparent)}
+.controls{position:sticky;top:0;z-index:30;padding:14px 18px 16px;margin:0 0 6px;
+  background:linear-gradient(180deg, rgba(16,9,38,.92) 62%, rgba(16,9,38,.74))}
 .controls-inner{max-width:1180px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center}
 .search{flex:1 1 220px;max-width:320px;display:flex;align-items:center;gap:8px;
   background:#fff;border-radius:999px;padding:10px 16px;color:var(--ink);box-shadow:0 6px 16px rgba(0,0,0,.2)}
@@ -193,9 +193,7 @@ footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;colo
 <body>
 <div class="bg"></div>
 
-<header>
-  <div class="count-pill" id="countPill">0 Brainrot</div>
-</header>
+<header></header>
 
 <div class="controls">
   <div class="controls-inner">
@@ -312,7 +310,7 @@ function accBadge(c){
 
 function render(){
   const list = visible();
-  countPill.textContent = `${COLLECTION.length} Brainrot${COLLECTION.length>1?'s':''} dans la collec`;
+  if(countPill) countPill.textContent = `${COLLECTION.length} Brainrot${COLLECTION.length>1?'s':''} dans la collec`;
   gallery.innerHTML = list.map((p,i)=>{
     const t = TIERS[p.tier]||TIERS.commun;
     const idx = COLLECTION.indexOf(p);
