@@ -254,12 +254,13 @@ footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;colo
 }
 .pick-remove:hover{background:rgba(255,80,80,.28)}
 .card-vals{
-  font-family:'Fredoka';font-size:14.5px;font-weight:700;
+  font-family:'Fredoka';font-size:16px;font-weight:700;
   display:flex;gap:6px;justify-content:center;flex-wrap:wrap;
-  margin:0 4px 7px;
+  margin:0 4px 8px;
 }
 .card-vals span{
-  text-shadow:0 0 8px rgba(0,0,0,1),0 1px 3px rgba(0,0,0,1);
+  text-shadow:1px 1px 0 rgba(0,0,0,.9),-1px -1px 0 rgba(0,0,0,.9),
+              1px -1px 0 rgba(0,0,0,.9),-1px 1px 0 rgba(0,0,0,.9);
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (max-width:520px){
@@ -468,7 +469,7 @@ let COLLECTION = [
   {name:"Carloo", tier:"mythique", owned:false, coll:1, img:"photos/carloo.jpg", emoji:"🚗", desc:"Carloo est un personnage de rareté Mythique, un poisson avec des pieds qui sirote un milkshake à la fraise, portant un chapeau noir et des lunettes noires, nageant avec un style chaotique. Il incarne l'absurdité ludique de la culture mème brainrot italienne.", prix:"4,5M", revenu:"13,5K/s"},
   {name:"Harpuccino", tier:"mythique", owned:false, coll:1, img:"photos/harpuccino.jpg", emoji:"🎵", desc:"", prix:"4,6M", revenu:"14K/s"},
   {name:"Carrotini Brainini", tier:"mythique", owned:false, coll:1, img:"photos/carrotini-brainini.jpg", emoji:"🥕", desc:"Carrotini Brainini est un personnage de rareté Mythique, une carotte avec une texture ressemblant à un cerveau, qui sautille avec une énergie farfelue. Il incarne l'absurdité fantaisiste de la culture mème brainrot italienne.", prix:"4,7M", revenu:"15K/s"},
-  {name:"Cocoteddy", tier:"mythique", owned:false, coll:1, img:"", emoji:"🧸", desc:"", prix:"4,7M", revenu:"15K/s"},
+  {name:"Cocoteddy", tier:"mythique", owned:false, coll:1, img:"photos/cocoteddy.jpg", emoji:"🧸", desc:"", prix:"4,7M", revenu:"15K/s"},
   {name:"Centrucci Neclucci", tier:"mythique", owned:false, coll:1, img:"photos/centrucci-nuclucci.jpg", emoji:"🧠", desc:"Centrucci Neclucci est un personnage Brainrot de rareté Mythique obtainable en échangeant d'anciens Brainrots au Brainrot Trader. Il émane une énergie nucléaire de dingue, symbolisant l'innovation, l'instabilité et la créativité explosive de l'évolution Brainrot.", prix:"4,8M", revenu:"15,5K/s"},
   {name:"Toiletto Focaccino", tier:"mythique", owned:false, coll:1, img:"photos/toiletto-focaccino.jpg", emoji:"🚽", desc:"", prix:"4,8M", revenu:"16K/s"},
   {name:"Jacko Spaventosa", tier:"mythique", owned:false, coll:1, img:"photos/jacko-spaventosa.jpg", emoji:"🎃", desc:"Jacko Spaventosa est un Brainrot de rareté Mythique obtenu avec la fusion Witch. C'est une citrouille anthropomorphe avec un sourire maléfique, des yeux qui brillent et une aura méchante qui respire l'humour Halloween spooky et le chaos brainrot!", prix:"4,8M", revenu:"16,2K/s"},
@@ -476,7 +477,7 @@ let COLLECTION = [
   {name:"Tree Tree Tree Sahur", tier:"mythique", owned:false, coll:1, img:"photos/tree-tree-tree-sahur.jpg", emoji:"🌳", desc:"Tree Tree Tree Sahur est un petit Brainrot de rareté Mythique : un sapin de Noël anthropomorphe avec un bonnet rouge et blanc qui scintille de lumières et se tortille au rythme lointain du 'tung tung'!", prix:"5M", revenu:"17K/s"},
   {name:"Fizzy Soda", tier:"mythique", owned:false, coll:1, img:"photos/fizzy-soda.jpg", emoji:"🥤", desc:"Fizzy Soda est un Brainrot de rareté Mythique : une fusion grenouille + soda pétillant. C'est tout en pétillement, bulles et carbonatation énergique qui capture l'humour brainrot italien!", prix:"4,9M", revenu:"17,2K/s"},
   {name:"Berenjello Angello", tier:"mythique", owned:false, coll:1, img:"photos/berenjello-angello.jpg", emoji:"🍆", desc:"", prix:"5,5M", revenu:"18K/s"},
-  {name:"Bucketoro", tier:"mythique", owned:false, coll:1, img:"", emoji:"🪣", desc:"", prix:"5,7M", revenu:"18,2K/s"},
+  {name:"Bucketoro", tier:"mythique", owned:false, coll:1, img:"photos/bucketoro.jpg", emoji:"🪣", desc:"", prix:"5,7M", revenu:"18,2K/s"},
   {name:"Orbi Mochi", tier:"mythique", owned:false, coll:1, img:"photos/orbi-mochi.jpg", emoji:"🍡", desc:"Orbi Mochi est un Brainrot de rareté Mythique de la vague CYBER UPDATE. C'est une sphère rose style mochi avec des pics argentés, des nœuds orb bleus et des appendices cyber. Trop cool parce que ça montre que la série Cyber ne s'arrête pas aux humanoides!", prix:"6M", revenu:"19K/s"},
   {name:"Cocofanto Elefanto", tier:"dieu", owned:false, coll:1, img:"photos/cocofanto-elefanto.jpg", emoji:"🐘", desc:"", prix:"5M", revenu:"17,5K/s"},
   {name:"Antonio", tier:"dieu", owned:false, coll:1, img:"photos/antonio.jpg", emoji:"🧠", desc:"Antonio est un Brainrot de rareté Dieu : un brocoli élégant en costard qui mélange la sophistication avec l'absurde, incarnant l'essence bizarre de la culture brainrot meme italienne.", prix:"6M", revenu:"18,5K/s"},
@@ -559,12 +560,12 @@ let COLLECTION = [
   {name:"Patteo", tier:"dieu", owned:false, coll:1, img:"photos/patteo.jpg", emoji:"🧠", desc:"Patteo est un Brainrot de rareté Dieu — une version naine de Matteo style St-Patrick avec une quatre-feuilles sur sa tenue, un chapeau vert clair, des lunettes dorées et des vêtements assortis. C'est une grosse récompense du Bloc de Chance Lutin et une cible premium pour les grinders!", prix:"$57.5M", revenu:"$287.5K/s"},
   {name:"Astrolero Cervalero", tier:"dieu", owned:false, coll:1, img:"photos/astrolero-cervalero.jpg", emoji:"🦌", desc:"", prix:"?", revenu:"?"},
   {name:"Divino Platypio", tier:"dieu", owned:false, coll:1, img:"photos/divino-platypio.jpg", emoji:"🦆", desc:"", prix:"?", revenu:"?"},
-  {name:"Lazy Ducky", tier:"dieu", owned:false, coll:1, img:"", emoji:"🦆", desc:"", prix:"?", revenu:"?"},
+  {name:"Lazy Ducky", tier:"dieu", owned:false, coll:1, img:"photos/lazy-ducky.jpg", emoji:"🦆", desc:"", prix:"?", revenu:"?"},
   {name:"Bunny Tralala", tier:"dieu", owned:false, coll:1, img:"photos/bunny-tralala.jpg", emoji:"🐰", desc:"Bunny Tralala est un Brainrot de rareté Dieu disponible dans Steal a Brainrot comme part du Bloc de Chance Œuf de PÂQUES (Partie 2). Ce n'est pas qu'un simple lapin : il garde l'essence Tralala avec son museau de requin, ses marques de branchies et sa petite nageoire, mais avec des oreilles de lapin super longues et des chaussures de Pâques! C'est le variant saisonnier parfait de la famille Tralala.", prix:"$47.0M", revenu:"$270.0K/s"},
   {name:"Dumborino Miracello", tier:"dieu", owned:false, coll:1, img:"photos/dumborino-miracello.jpg", emoji:"🧠", desc:"", prix:"?", revenu:"?"},
   {name:"Eggdin Egg Egg Dun", tier:"dieu", owned:false, coll:1, img:"photos/eggdin-egg-egg-dun.jpg", emoji:"🥚", desc:"Eggdin Egg Egg Dun est un Brainrot de rareté Dieu disponible dans Steal a Brainrot comme part du Bloc de Chance Œuf de PÂQUES (Partie 2). C'est une variante Egg Egg Dun à thème œuf avec un corps d'œuf rayé et des traits d'oiseau. C'est une cible Dieu facile d'accès au début du lineup de Pâques!", prix:"$72.5M", revenu:"$310.0K/s"},
-  {name:"Appelini", tier:"dieu", owned:false, coll:1, img:"", emoji:"🍎", desc:"", prix:"?", revenu:"?"},
-  {name:"Pineaplino", tier:"dieu", owned:false, coll:1, img:"", emoji:"🍍", desc:"", prix:"?", revenu:"?"},
+  {name:"Appelini", tier:"dieu", owned:false, coll:1, img:"photos/appelini.jpg", emoji:"🍎", desc:"", prix:"?", revenu:"?"},
+  {name:"Pineaplino", tier:"dieu", owned:false, coll:1, img:"photos/pineaplino.jpg", emoji:"🍍", desc:"", prix:"?", revenu:"?"},
   {name:"Trenotubo Axolotrico 9000", tier:"dieu", owned:false, coll:1, img:"photos/trenoturbo-axolotrico-9000.jpg", emoji:"🚂", desc:"Trenotubo Axolotrico 9000 est un brainrot de rareté Secrète, l'un des designs robotiques les plus mignons de la gamme Cyber. C'est un visage d'axolotl rose souriant intégré dans un châssis mécanique gris-bleu avec des branchies roses et des jambes robotiques bien épaisses. C'est cool car ça rend les machines fun sans perdre le style cyber.", prix:"$247.5M", revenu:"$975.0K/s"},
   {name:"Los Matteos", tier:"secret", owned:false, coll:1, img:"photos/los-matteos.jpg", emoji:"🧠", desc:"Los Matteos est un personnage de rareté Secrète représenté comme un trio de jeunes Matteos, chacun une petite créature avec un grand nez, des grosses lunettes de soleil à monture ronde, un haut-de-forme noir et une cravate bleue. Ils propagent des vibrations musicales chaotiques et incarnent l'absurdité vive des mèmes italiens brainrot.", prix:"100M", revenu:"300K/s"},
   {name:"La Vacca Saturno Saturnita", tier:"secret", owned:false, coll:1, img:"photos/la-vacca-saturno-saturnita.jpg", emoji:"🐄", desc:"La Vacca Saturno Saturnita est une vache cosmique qui orbite dans le jeu avec un meuuuu bizarre et des vibrations planétaires.", prix:"50M", revenu:"300K/s"},

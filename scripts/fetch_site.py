@@ -84,6 +84,20 @@ tralalita-tralala tree-tree-tree-sahur trenostruzzo-turbo-4000 trenoturbo-axolot
 trickolino triplito-tralaleritos trippi-troppi trippi-troppi-troppa-trippa trulimero-trulicina
 tuff-toucan tung-tung-tung-sahur ventoliero-pavonero vulturino-skeletono w-or-l
 wheelchair-granny yess-my-examine yeti-claus zibra-zubra-zibralini zombie-tralala
+appelini aquanaut astrolero-cervalero avocadini-antilopini avocadini-guffo
+ballerina-cappuccina ballerino-lololo bambini-crostini bandito-bobritto berenjello-angello
+bombombini-gusini boneca-ambalabu brasilini-berimbini brr-brr-patapim brr-es-teh-patipum
+brri-brri-bicus-dicus-bombicus bucketoro buho-del-cielo cacasito-satalito cacto-hipopotamo
+capi-taco cavallo-virtuoso chimpanzini-bananini cocofanto-elefanto cocoteddy
+divino-platypio dumborino-miracello extinct-ballerina frigo-camelo ganganzelli-trulala
+gangster-footera gattatino-nyanino gorillo-watermelondrillo harpuccino holy-arepa
+lazy-ducky lerulerulerule lionel-cactuseli lirili-larila los-tungtungtungcitos
+noobini-pizzanini odin-din-din-dun orangutini-ananassini pakrahmatmamat pandaccini-bananini
+perochello-lemonchello piccione-macchina pineaplino pipi-kiwi pipi-potato puffaball
+quivioli-ameleonni raccooni-jandelini rhino-toasterino salamino-penguino seraphino-gruyero
+sigma-boy ta-ta-ta-ta-sahur tartaruga-cisterna tipi-topi-taco tob-tobi-tobi
+toiletto-focaccino tracoducotulu-delapeladustuz tractoro-dinosauro trenostruzzo-turbo-3000
+tukanno-bananno unclito-samito urubini-flamenguini wombo-rollo
 """.split())
 
 MANUAL = {
