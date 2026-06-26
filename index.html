@@ -55,15 +55,16 @@ h1{
 
 /* ---------- PAGE D'ACCUEIL : façade plein écran + bouton Entrer ---------- */
 #intro{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;
-  padding:0 24px 8vh;
-  background:linear-gradient(to top, rgba(8,4,22,.62), rgba(8,4,22,0) 42%),
+  padding:0 24px max(env(safe-area-inset-bottom,0px) + 28px, 6vh);
+  background:linear-gradient(to top, rgba(8,4,22,.72), rgba(8,4,22,0) 48%),
              url('titre.jpg') center / cover no-repeat;
   transition:opacity .6s ease}
 #intro.hide{opacity:0;pointer-events:none}
-.enter-btn{font-family:'Fredoka';font-weight:700;font-size:clamp(20px,5vw,30px);
+.enter-btn{font-family:'Fredoka';font-weight:700;font-size:clamp(18px,5vw,30px);
   letter-spacing:.08em;color:#3a2400;cursor:pointer;border:none;border-radius:999px;
   padding:16px 56px;background:linear-gradient(90deg,#ffe07a,#ffb01f);
-  box-shadow:0 12px 34px rgba(255,176,31,.55);animation:pulseBtn 2s ease-in-out infinite}
+  box-shadow:0 12px 34px rgba(255,176,31,.55);animation:pulseBtn 2s ease-in-out infinite;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation}
 @keyframes pulseBtn{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
 .enter-btn:hover{transform:scale(1.09)}
 
@@ -94,6 +95,15 @@ h1{
   cursor:pointer;border:none;color:#fff;background:linear-gradient(90deg,#ff6ec4,#ff9a5a);
   box-shadow:0 6px 16px rgba(255,110,196,.4);transition:transform .12s}
 .add-btn:hover{transform:translateY(-2px) scale(1.03)}
+
+.controls-top{justify-content:space-between}
+.controls-top-btns{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.filter-toggle{display:none;font-family:'Fredoka';font-weight:600;font-size:13.5px;
+  padding:9px 16px;border-radius:999px;border:2px solid rgba(255,255,255,.3);
+  background:rgba(255,255,255,.1);color:#fff;cursor:pointer;transition:background .15s;
+  -webkit-tap-highlight-color:transparent}
+.filter-toggle.open{background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.55)}
+.filters-panel{/* toujours visible sur desktop */}
 
 /* compteur de complétion + statut attrapé/à attraper */
 .completion{display:flex;flex-direction:column;align-items:center;gap:6px;margin:0 auto 12px;max-width:520px}
@@ -295,21 +305,28 @@ footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;colo
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (max-width:620px){
   .wrap{padding:0 12px}
-  header{padding:14px 14px 2px}
-  /* controls plus compacts */
-  .controls{padding:10px 10px 12px}
+  header{padding:10px 12px 2px}
+  /* page d'accueil */
+  .enter-btn{font-size:22px;padding:15px 44px}
+  /* controls : barre réduite + filtres masqués par défaut */
+  .controls{padding:8px 10px 10px}
+  .filter-toggle{display:block}
+  .filters-panel{display:none;margin-top:8px}
+  .filters-panel.open{display:block}
   .controls-inner{gap:7px}
-  .search{flex:1 1 100%;max-width:none}
+  .search{flex:1 1 0;min-width:0}
   .search input{font-size:15px}
   .chips{gap:6px}
   .chip{font-size:12.5px;padding:6px 11px;border-width:1.5px}
-  .add-btn{font-size:12.5px;padding:7px 14px}
+  .add-btn{font-size:12.5px;padding:8px 14px;white-space:nowrap}
   .coll-label{font-size:12.5px;width:100%;text-align:center;margin:0 0 2px}
   .chip-acc{padding:5px 11px 5px 24px!important}
   .chip-acc::before{left:9px;width:9px;height:9px}
   .ca-top{font-size:10px}.ca-name{font-size:12.5px}
   .completion{gap:5px}
-  .comp-text{font-size:13.5px}
+  .comp-text{font-size:13px;flex:1;text-align:left}
+  .sync-btn{font-size:11px;padding:3px 8px}
+  .reset-btn{font-size:11px;padding:3px 8px}
   /* gallery 2 colonnes serrées */
   .gallery{grid-template-columns:1fr 1fr;gap:12px;padding:6px 0 60px}
   .card{border-width:3px;border-radius:18px}
@@ -365,35 +382,42 @@ footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;colo
 </div>
 
 <div class="controls">
-  <div class="controls-inner">
+  <div class="controls-inner controls-top">
     <div class="search">
       <span>🔎</span>
       <input id="search" type="text" placeholder="Cherche un Brainrot…" aria-label="Rechercher">
     </div>
-    <div class="chips" id="chips">
-      <button class="chip active" data-f="all">Tout voir</button>
-      <button class="chip" data-f="commun">Commun</button>
-      <button class="chip" data-f="rare">Rare</button>
-      <button class="chip" data-f="epique">Épique</button>
-      <button class="chip" data-f="legendaire">Légendaire</button>
-      <button class="chip" data-f="mythique">Mythique</button>
-      <button class="chip" data-f="dieu">Dieu Brainrot</button>
-      <button class="chip" data-f="secret">Secret</button>
-      <button class="chip" data-f="og">OG</button>
-    </div>
-    <button class="add-btn" id="openAdd">+ Ajouter</button>
-  </div>
-  <div class="controls-inner controls-status">
-    <div class="chips" id="chipsStatus">
-      <button class="chip active" data-s="all">Tout</button>
-      <button class="chip" data-s="owned">⭐ Ma collection</button>
-      <button class="chip" data-s="todo">⬜ À attraper</button>
+    <div class="controls-top-btns">
+      <button class="filter-toggle" id="filterToggle" onclick="toggleFilters()">Filtres ▾</button>
+      <button class="add-btn" id="openAdd">+ Ajouter</button>
     </div>
   </div>
-  <div class="controls-inner controls-coll">
-    <span class="coll-label">Mes comptes :</span>
-    <div class="chips" id="chipsColl">
-      <button class="chip active" data-c="all">Tous</button>
+  <div class="filters-panel" id="filtersPanel">
+    <div class="controls-inner">
+      <div class="chips" id="chips">
+        <button class="chip active" data-f="all">Tout voir</button>
+        <button class="chip" data-f="commun">Commun</button>
+        <button class="chip" data-f="rare">Rare</button>
+        <button class="chip" data-f="epique">Épique</button>
+        <button class="chip" data-f="legendaire">Légendaire</button>
+        <button class="chip" data-f="mythique">Mythique</button>
+        <button class="chip" data-f="dieu">Dieu Brainrot</button>
+        <button class="chip" data-f="secret">Secret</button>
+        <button class="chip" data-f="og">OG</button>
+      </div>
+    </div>
+    <div class="controls-inner controls-status">
+      <div class="chips" id="chipsStatus">
+        <button class="chip active" data-s="all">Tout</button>
+        <button class="chip" data-s="owned">⭐ Ma collection</button>
+        <button class="chip" data-s="todo">⬜ À attraper</button>
+      </div>
+    </div>
+    <div class="controls-inner controls-coll">
+      <span class="coll-label">Mes comptes :</span>
+      <div class="chips" id="chipsColl">
+        <button class="chip active" data-c="all">Tous</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1279,6 +1303,13 @@ document.getElementById('chipsColl').addEventListener('click',e=>{
 });
 document.getElementById('search').addEventListener('input',e=>{searchTerm=e.target.value.toLowerCase().trim();render();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeAdd();closeSync();}});
+window.toggleFilters=function(){
+  const panel=document.getElementById('filtersPanel');
+  const btn=document.getElementById('filterToggle');
+  const open=panel.classList.toggle('open');
+  btn.classList.toggle('open',open);
+  btn.textContent=open?'Filtres ▴':'Filtres ▾';
+};
 
 /* construit les boutons "comptes" et les options du formulaire depuis COLLECTIONS */
 function buildAccounts(){
