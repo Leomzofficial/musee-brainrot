@@ -30,7 +30,7 @@ body{
 .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 18px}
 
 /* ---------- HEADER ---------- */
-header{text-align:center;padding:clamp(140px,32vh,300px) 18px 16px;position:relative;z-index:1}
+header{text-align:center;padding:20px 18px 4px;position:relative;z-index:1}
 .banner{display:block;width:100%;max-width:760px;margin:0 auto 8px;border-radius:18px;
   box-shadow:0 16px 44px rgba(0,0,0,.55);border:2px solid rgba(255,255,255,.12)}
 .logo{font-size:54px;display:inline-block;animation:wobble 3s ease-in-out infinite}
@@ -52,6 +52,21 @@ h1{
   border:2px solid rgba(255,255,255,.35);border-radius:999px;
   padding:8px 18px;font-family:'Fredoka';font-weight:600;font-size:15px;
 }
+
+/* ---------- PAGE D'ACCUEIL (écran de titre + bouton Entrer) ---------- */
+#intro{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:30px;padding:24px;
+  background:radial-gradient(circle at 50% 28%, #2a1655, #120a2e 72%);
+  transition:opacity .6s ease}
+#intro.hide{opacity:0;pointer-events:none}
+#intro img{width:100%;max-width:940px;max-height:68vh;object-fit:contain;
+  border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.6)}
+.enter-btn{font-family:'Fredoka';font-weight:700;font-size:clamp(20px,5vw,30px);
+  letter-spacing:.08em;color:#3a2400;cursor:pointer;border:none;border-radius:999px;
+  padding:16px 56px;background:linear-gradient(90deg,#ffe07a,#ffb01f);
+  box-shadow:0 12px 34px rgba(255,176,31,.55);animation:pulseBtn 2s ease-in-out infinite}
+@keyframes pulseBtn{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.enter-btn:hover{transform:scale(1.09)}
 
 /* ---------- CONTROLS ---------- */
 .controls{position:sticky;top:0;z-index:30;padding:14px 18px 16px;margin:0 0 6px;
@@ -192,6 +207,11 @@ footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;colo
 </head>
 <body>
 <div class="bg"></div>
+
+<div id="intro">
+  <img src="titre.jpg" alt="Le Grand Musée des Brainrots de Leomz">
+  <button class="enter-btn" id="enterBtn">ENTRER ▸</button>
+</div>
 
 <header></header>
 
@@ -448,6 +468,15 @@ window.savePiece=function(){
 
 buildAccounts();
 render();
+
+/* page d'accueil : on bloque le défilement tant qu'on n'a pas cliqué ENTRER */
+const intro=document.getElementById('intro');
+document.body.style.overflow='hidden';
+document.getElementById('enterBtn').addEventListener('click',()=>{
+  intro.classList.add('hide');
+  document.body.style.overflow='';
+  setTimeout(()=>{intro.style.display='none';},650);
+});
 </script>
 </body>
 </html>
