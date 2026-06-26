@@ -117,10 +117,11 @@ h1{
 /* ---------- GALLERY ---------- */
 .count{display:none}
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:22px;padding:8px 0 70px}
+.gallery.no-anim .card{animation:none!important}
 .card{
   position:relative;background:var(--card);border-radius:22px;cursor:pointer;overflow:hidden;
-  border:4px solid var(--rc);padding-bottom:14px;
-  content-visibility:auto;contain-intrinsic-size:auto 320px;
+  border:4px solid var(--rc);padding-bottom:6px;
+  content-visibility:auto;contain-intrinsic-size:auto 380px;
   box-shadow:0 10px 26px rgba(0,0,0,.28), 0 0 0 0 var(--rc);
   transition:transform .16s cubic-bezier(.3,1.4,.5,1), box-shadow .2s;
   animation:pop .5s cubic-bezier(.2,1.3,.4,1) both;
@@ -130,19 +131,19 @@ h1{
 .card:hover{box-shadow:0 18px 34px rgba(0,0,0,.34), 0 0 26px -4px var(--rc)}
 .idtag{position:absolute;top:10px;left:12px;z-index:3;font-family:'Fredoka';font-weight:600;
   font-size:12px;color:#fff;background:rgba(36,26,77,.55);border-radius:999px;padding:3px 9px}
-.stage{position:relative;height:170px;display:grid;place-items:center;margin-top:4px}
-.halo{position:absolute;width:150px;height:150px;border-radius:50%;
+.stage{position:relative;height:210px;display:grid;place-items:center;margin-top:4px}
+.halo{position:absolute;width:185px;height:185px;border-radius:50%;
   background:radial-gradient(circle,var(--rc),transparent 68%);opacity:.45}
 .r-legendaire .halo,.r-mythique .halo{animation:pulse 2.4s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.75;transform:scale(1.12)}}
-.subject{position:relative;z-index:2;display:grid;place-items:center;height:150px;width:100%}
-.subject img{max-width:78%;max-height:140px;object-fit:contain;border-radius:12px;
+.subject{position:relative;z-index:2;display:grid;place-items:center;height:190px;width:100%}
+.subject img{max-width:82%;max-height:178px;object-fit:contain;border-radius:12px;
   filter:drop-shadow(0 10px 10px rgba(0,0,0,.3))}
 .creature{animation:bob 3.4s ease-in-out infinite}
 .card:nth-child(2n) .creature{animation-duration:4.1s;animation-delay:-1.2s}
 .card:nth-child(3n) .creature{animation-duration:2.9s;animation-delay:-.6s}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-12px) rotate(3deg)}}
-.ph{font-size:74px;line-height:1;filter:drop-shadow(0 8px 8px rgba(0,0,0,.25))}
+.ph{font-size:92px;line-height:1;filter:drop-shadow(0 8px 8px rgba(0,0,0,.25))}
 .ph-note{position:absolute;bottom:4px;left:0;right:0;text-align:center;z-index:3;
   font-family:'Fredoka';font-size:11px;color:#b3adcf;font-weight:500}
 .sparkle{position:absolute;z-index:3;font-size:20px;animation:tw 1.8s ease-in-out infinite}
@@ -213,10 +214,24 @@ h1{
 
 footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;color:#c5b8e8;font-family:'Fredoka';font-weight:500;font-size:13px;opacity:.8}
 
+.catch-btn{
+  display:block;width:calc(100% - 28px);margin:10px 14px 8px;
+  font-family:'Fredoka';font-weight:600;font-size:13.5px;
+  padding:9px 10px;border-radius:14px;border:none;cursor:pointer;
+  background:rgba(255,255,255,.1);color:#d9ccff;
+  transition:transform .12s,background .15s,color .15s;
+  position:relative;z-index:4;
+}
+.catch-btn:hover{transform:translateY(-2px);background:rgba(255,255,255,.18)}
+.catch-btn.owned{
+  background:linear-gradient(90deg,#ffcd38,#34c77b);
+  color:#1a3d28;
+}
+.catch-btn.owned:hover{transform:translateY(-2px);filter:brightness(1.08)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (max-width:520px){
   .gallery{grid-template-columns:1fr 1fr;gap:14px}
-  .stage{height:140px}.subject{height:120px}.subject img{max-height:115px}.ph{font-size:56px}
+  .stage{height:165px}.subject{height:150px}.subject img{max-height:140px}.ph{font-size:68px}
   .pname{font-size:16px}
 }
 </style>
@@ -259,8 +274,8 @@ footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;colo
   <div class="controls-inner controls-status">
     <div class="chips" id="chipsStatus">
       <button class="chip active" data-s="all">Tout</button>
-      <button class="chip" data-s="owned">✓ Attrapés</button>
-      <button class="chip" data-s="todo">À attraper</button>
+      <button class="chip" data-s="owned">⭐ Ma collection</button>
+      <button class="chip" data-s="todo">⬜ À attraper</button>
     </div>
   </div>
   <div class="controls-inner controls-coll">
@@ -687,11 +702,47 @@ let COLLECTION = [
   {name:"Strawberry Elephant", tier:"og", owned:false, coll:1, img:"", emoji:"🍓", desc:"", prix:"?", revenu:"?"}
 ];
 
+const LS_KEY = 'brainrot_owned';
+function loadOwned(){try{return JSON.parse(localStorage.getItem(LS_KEY)||'{}');}catch(e){return {};}}
+function saveOwned(){const d={};COLLECTION.forEach(p=>{if(p.owned)d[p.name]=1;});localStorage.setItem(LS_KEY,JSON.stringify(d));}
+function applyOwned(){const d=loadOwned();COLLECTION.forEach(p=>{if(d[p.name])p.owned=true;});}
+
 const gallery = document.getElementById('gallery');
 const compText = document.getElementById('compText');
 const compFill = document.getElementById('compFill');
 const modal = document.getElementById('modal');
 let activeFilter='all', activeColl='all', activeStatus='all', searchTerm='';
+
+window.toggleOwned = function(idx, e) {
+  e.stopPropagation();
+  COLLECTION[idx].owned = !COLLECTION[idx].owned;
+  saveOwned();
+  // Mise à jour compteur
+  const total = COLLECTION.length;
+  const owned = COLLECTION.filter(p=>p.owned).length;
+  const pct = total? Math.round(owned/total*100) : 0;
+  if(compText) compText.textContent = `${owned} / ${total} attrapés · ${pct}%`;
+  if(compFill) compFill.style.width = pct+'%';
+  // Re-render sans animation si filtre actif, sinon mise à jour ciblée
+  if(activeStatus!=='all'){const y=window.scrollY;gallery.classList.add('no-anim');render();window.scrollTo(0,y);requestAnimationFrame(()=>gallery.classList.remove('no-anim'));return;}
+  // Mise à jour ciblée de la carte
+  const p = COLLECTION[idx];
+  const t = TIERS[p.tier]||TIERS.commun;
+  const card = gallery.querySelector(`[data-idx="${idx}"]`);
+  if(!card) return;
+  card.classList.toggle('todo',!p.owned);
+  // Sparkles
+  card.querySelectorAll('.sparkle').forEach(s=>s.remove());
+  if(p.owned&&['legendaire','mythique','dieu','secret','og'].includes(p.tier)){
+    card.querySelector('.stage').insertAdjacentHTML('afterbegin','<span class="sparkle s1">✨</span><span class="sparkle s2">⭐</span>');
+  }
+  // Badge compte
+  const badges=card.querySelector('.badges');
+  if(badges){const old=badges.querySelector('.acc,.todo-tag');if(old)old.outerHTML=p.owned?accBadge(p.coll):'<span class="todo-tag">⬜ à attraper</span>';}
+  // Bouton
+  const btn=card.querySelector('.catch-btn');
+  if(btn){btn.className='catch-btn'+(p.owned?' owned':'');btn.textContent=p.owned?'✓ Attrapé !':'⭐ Déjà attrapé ?';}
+};
 
 function visible(){
   return COLLECTION.filter(p=>{
@@ -730,7 +781,7 @@ function render(){
       ? `<span class="sparkle s1">✨</span><span class="sparkle s2">⭐</span>` : '';
     const badge = p.owned ? accBadge(p.coll) : `<span class="todo-tag">⬜ à attraper</span>`;
     return `
-    <div class="card ${t.cls} ${p.owned?'':'todo'}" style="--rc:${RC[p.tier]};animation-delay:${i*0.05}s" onclick="openPiece(${idx})">
+    <div class="card ${t.cls} ${p.owned?'':'todo'}" data-idx="${idx}" style="--rc:${RC[p.tier]};animation-delay:${i*0.05}s" onclick="openPiece(${idx})">
       <div class="idtag">#${String(idx+1).padStart(3,'0')}</div>
       <div class="stage">
         <div class="halo"></div>
@@ -745,6 +796,7 @@ function render(){
           ${badge}
         </div>
       </div>
+      <button class="catch-btn ${p.owned?'owned':''}" onclick="toggleOwned(${idx},event)">${p.owned?'✓ Attrapé !':'⭐ Déjà attrapé ?'}</button>
     </div>`;
   }).join('');
   if(!list.length){
@@ -867,6 +919,7 @@ window.savePiece=function(){
   window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
 };
 
+applyOwned();
 buildAccounts();
 render();
 
