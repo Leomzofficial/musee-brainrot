@@ -951,7 +951,7 @@ function render(){
       revFmt?`<span style="color:${valColor(p.revenu)}">📈 ${escape(revFmt)}</span>`:''
     }</div>`:'';
     return `
-    <div class="card ${t.cls} ${p.owned?'':'todo'}" data-idx="${idx}" style="--rc:${RC[p.tier]};animation-delay:${i*0.05}s" onclick="openPiece(${idx})">
+    <div class="card ${t.cls} ${p.owned?'':'todo'}" data-idx="${idx}" style="--rc:${RC[p.tier]};animation-delay:${Math.min(i*0.04,0.6)}s" onclick="openPiece(${idx})">
       <div class="idtag">#${String(idx+1).padStart(3,'0')}</div>
       <div class="stage">
         <div class="halo"></div>
@@ -1096,9 +1096,8 @@ window.savePiece=function(){
 
 applyOwned();
 buildAccounts();
-render();
 
-/* page d'accueil : on bloque le défilement tant qu'on n'a pas cliqué ENTRER */
+/* page d'accueil : enregistrer le listener EN PREMIER avant tout render */
 const intro=document.getElementById('intro');
 document.body.style.overflow='hidden';
 document.getElementById('enterBtn').addEventListener('click',()=>{
@@ -1106,6 +1105,8 @@ document.getElementById('enterBtn').addEventListener('click',()=>{
   document.body.style.overflow='';
   setTimeout(()=>{intro.style.display='none';},650);
 });
+
+render();
 </script>
 </body>
 </html>
