@@ -409,6 +409,8 @@ footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;colo
 
 <footer>Musée du Brainrot — la collec de Leomz 🧠✨</footer>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
 <script>
 const TIERS = {
   commun:     {label:"Commun",        cls:"r-commun"},
@@ -922,17 +924,26 @@ if(localStorage.getItem(LS_VER) !== '2') {
   localStorage.removeItem(LS_CAUGHT);
   localStorage.setItem(LS_VER, '2');
 }
+/* --- synchro cloud (Firebase) : voir bloc d'init tout en bas --- */
+let cloudRef=null, applyingRemote=false, pushTimer=null;
+function pushCloud(){
+  if(applyingRemote||!cloudRef)return;
+  clearTimeout(pushTimer);
+  pushTimer=setTimeout(()=>{
+    cloudRef.set({o:loadOwned(),c:loadCaught(),m:loadMuts(),t:Date.now()}).catch(()=>{});
+  },400);
+}
 function loadOwned(){try{return JSON.parse(localStorage.getItem(LS_KEY)||'{}');}catch(e){return {};}}
-function saveOwned(){const d={};COLLECTION.forEach(p=>{if(p.owned)d[p.name]=p.coll;});localStorage.setItem(LS_KEY,JSON.stringify(d));}
+function saveOwned(){const d={};COLLECTION.forEach(p=>{if(p.owned)d[p.name]=p.coll;});localStorage.setItem(LS_KEY,JSON.stringify(d));pushCloud();}
 function applyOwned(){const d=loadOwned();COLLECTION.forEach(p=>{const v=d[p.name];if(v!=null){p.owned=true;p.coll=Array.isArray(v)?v.filter(c=>c>=1&&c<=5):([v].filter(c=>c>=1&&c<=5));if(!p.coll.length){p.owned=false;p.coll=[1];}}});}
 function collArr(p){return Array.isArray(p.coll)?p.coll:[p.coll].filter(Boolean);}
 function loadCaught(){try{return JSON.parse(localStorage.getItem(LS_CAUGHT)||'[]');}catch(e){return[];}}
-function saveCaught(){localStorage.setItem(LS_CAUGHT,JSON.stringify(COLLECTION.filter(p=>p.caught&&!p.owned).map(p=>p.name)));}
+function saveCaught(){localStorage.setItem(LS_CAUGHT,JSON.stringify(COLLECTION.filter(p=>p.caught&&!p.owned).map(p=>p.name)));pushCloud();}
 function applyCaught(){const d=loadCaught();COLLECTION.forEach(p=>{if(!p.owned)p.caught=d.includes(p.name);});}
 const LS_MUT='brainrot_mut';
 function mutKey(p){return p.name;}
 function loadMuts(){try{return JSON.parse(localStorage.getItem(LS_MUT)||'{}');}catch(e){return{};}}
-function saveMuts(){const d={};COLLECTION.forEach(p=>{if(p.mutation&&p.mutation!=='default')d[mutKey(p)]=p.mutation;});localStorage.setItem(LS_MUT,JSON.stringify(d));}
+function saveMuts(){const d={};COLLECTION.forEach(p=>{if(p.mutation&&p.mutation!=='default')d[mutKey(p)]=p.mutation;});localStorage.setItem(LS_MUT,JSON.stringify(d));pushCloud();}
 function applyMuts(){const d=loadMuts();COLLECTION.forEach(p=>{p.mutation=d[mutKey(p)]||'default';});}
 function parseRevenu(v){
   if(!v||v==='?')return null;
@@ -956,7 +967,7 @@ function resetCollection(){
   localStorage.removeItem(LS_CAUGHT);
   localStorage.removeItem(LS_MUT);
   COLLECTION.forEach(p=>{p.owned=false;p.caught=false;p.coll=[1];p.mutation='default';});
-  updateCounter();rerender();
+  updateCounter();rerender();pushCloud();
 }
 
 const gallery = document.getElementById('gallery');
@@ -1244,7 +1255,10 @@ window.doImport=function(){
   if(data.c)localStorage.setItem(LS_CAUGHT,JSON.stringify(data.c));
   if(data.m)localStorage.setItem(LS_MUT,JSON.stringify(data.m));
   localStorage.setItem(LS_VER,'2');
-  location.reload();
+  if(cloudRef){
+    cloudRef.set({o:data.o||{},c:data.c||[],m:data.m||{},t:Date.now()})
+      .then(()=>location.reload()).catch(()=>location.reload());
+  }else{location.reload();}
 };
 
 /* filtres + recherche */
@@ -1353,6 +1367,44 @@ document.getElementById('enterBtn').addEventListener('click',()=>{
 });
 
 render();
+
+/* ---------- SYNCHRO CLOUD (Firebase Realtime Database) ----------
+   La collection de Leomz est stockée en ligne : elle le suit sur
+   n'importe quel appareil. Sauvegarde et chargement automatiques. */
+(function initCloud(){
+  const firebaseConfig = {
+    apiKey: "AIzaSyCIMj0dIVe1mYc32qbI63-LWs9Jl2qaXYg",
+    authDomain: "musee-brainrots.firebaseapp.com",
+    databaseURL: "https://musee-brainrots-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "musee-brainrots",
+    storageBucket: "musee-brainrots.firebasestorage.app",
+    messagingSenderId: "436035486022",
+    appId: "1:436035486022:web:856dfd8c4270ee8c9ca547"
+  };
+  if(typeof firebase==='undefined'){console.warn('Firebase non chargé — mode hors-ligne');return;}
+  try{
+    firebase.initializeApp(firebaseConfig);
+    cloudRef = firebase.database().ref('leomz');
+  }catch(e){console.warn('Firebase init KO',e);return;}
+
+  cloudRef.on('value', snap=>{
+    if(!snap.exists()){
+      // Premier démarrage : la base est vide → on l'amorce avec ce qu'a cet appareil.
+      if(cloudRef)cloudRef.set({o:loadOwned(),c:loadCaught(),m:loadMuts(),t:Date.now()}).catch(()=>{});
+      return;
+    }
+    const data=snap.val()||{};
+    applyingRemote=true;
+    localStorage.setItem(LS_KEY,   JSON.stringify(data.o||{}));
+    localStorage.setItem(LS_CAUGHT,JSON.stringify(data.c||[]));
+    localStorage.setItem(LS_MUT,   JSON.stringify(data.m||{}));
+    localStorage.setItem(LS_VER,'2');
+    COLLECTION.forEach(p=>{p.owned=false;p.caught=false;p.coll=[1];p.mutation='default';});
+    applyOwned();applyCaught();applyMuts();
+    updateCounter();rerender();
+    applyingRemote=false;
+  }, err=>{console.warn('Lecture cloud KO',err);});
+})();
 </script>
 </body>
 </html>
