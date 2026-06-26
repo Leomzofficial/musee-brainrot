@@ -22,11 +22,10 @@ body{
   background:linear-gradient(160deg,#190d3c,#2a1456 60%,#3a1a4f);
   -webkit-font-smoothing:antialiased;overflow-x:hidden;
 }
-/* fond d'écran : le grand visuel du musée, fixe ; voile léger pour qu'on le
-   voie partout, un peu plus dense vers le bas pour garder les cartes lisibles */
+/* fond d'écran de la collection : l'INTÉRIEUR du musée, fixe et voilé pour lire les cartes */
 .bg{position:fixed;inset:0;z-index:0;pointer-events:none;
-  background:linear-gradient(rgba(8,4,22,.16) 0%, rgba(8,4,22,.30) 42%, rgba(8,4,22,.52) 100%),
-             url('titre.jpg') top center / cover no-repeat}
+  background:linear-gradient(rgba(10,5,26,.42), rgba(10,5,26,.60)),
+             url('fond.jpg') center / cover no-repeat}
 .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 18px}
 
 /* ---------- HEADER ---------- */
@@ -53,14 +52,13 @@ h1{
   padding:8px 18px;font-family:'Fredoka';font-weight:600;font-size:15px;
 }
 
-/* ---------- PAGE D'ACCUEIL (écran de titre + bouton Entrer) ---------- */
-#intro{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:30px;padding:24px;
-  background:radial-gradient(circle at 50% 28%, #2a1655, #120a2e 72%);
+/* ---------- PAGE D'ACCUEIL : façade plein écran + bouton Entrer ---------- */
+#intro{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;
+  padding:0 24px 8vh;
+  background:linear-gradient(to top, rgba(8,4,22,.62), rgba(8,4,22,0) 42%),
+             url('titre.jpg') center / cover no-repeat;
   transition:opacity .6s ease}
 #intro.hide{opacity:0;pointer-events:none}
-#intro img{width:100%;max-width:940px;max-height:68vh;object-fit:contain;
-  border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.6)}
 .enter-btn{font-family:'Fredoka';font-weight:700;font-size:clamp(20px,5vw,30px);
   letter-spacing:.08em;color:#3a2400;cursor:pointer;border:none;border-radius:999px;
   padding:16px 56px;background:linear-gradient(90deg,#ffe07a,#ffb01f);
@@ -209,7 +207,6 @@ footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;colo
 <div class="bg"></div>
 
 <div id="intro">
-  <img src="titre.jpg" alt="Le Grand Musée des Brainrots de Leomz">
   <button class="enter-btn" id="enterBtn">ENTRER ▸</button>
 </div>
 
