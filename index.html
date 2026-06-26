@@ -820,7 +820,7 @@ window.removePick=function(idx,e){
 function visible(){
   return COLLECTION.filter(p=>{
     const okTier = activeFilter==='all' || p.tier===activeFilter;
-    const okColl = activeColl==='all' || String(p.coll)===String(activeColl);
+    const okColl = activeColl==='all' || (p.owned && String(p.coll)===String(activeColl));
     const okStatus = activeStatus==='all' || (activeStatus==='owned'? p.owned : !p.owned);
     const okSearch = p.name.toLowerCase().includes(searchTerm);
     return okTier && okColl && okStatus && okSearch;
