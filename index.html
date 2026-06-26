@@ -265,6 +265,9 @@ footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;colo
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .pick-acc:hover{background:var(--c,#888);color:#111;transform:translateY(-1px)}
+.pick-acc.in-coll{background:var(--c,#888);color:#111}
+.pick-acc.in-coll::before{content:"✓ "}
+.pick-hint{width:100%;font-family:'Fredoka';font-weight:500;font-size:11px;color:#b9a8e6;text-align:center;margin-bottom:2px}
 .pick-remove{
   width:100%;margin-top:2px;
   font-family:'Fredoka';font-weight:600;font-size:12px;
@@ -868,12 +871,13 @@ if(localStorage.getItem(LS_VER) !== '2') {
 }
 function loadOwned(){try{return JSON.parse(localStorage.getItem(LS_KEY)||'{}');}catch(e){return {};}}
 function saveOwned(){const d={};COLLECTION.forEach(p=>{if(p.owned)d[p.name]=p.coll;});localStorage.setItem(LS_KEY,JSON.stringify(d));}
-function applyOwned(){const d=loadOwned();COLLECTION.forEach(p=>{const v=d[p.name];if(v){p.owned=true;if(v>=1&&v<=5)p.coll=v;}});}
+function applyOwned(){const d=loadOwned();COLLECTION.forEach(p=>{const v=d[p.name];if(v!=null){p.owned=true;p.coll=Array.isArray(v)?v.filter(c=>c>=1&&c<=5):([v].filter(c=>c>=1&&c<=5));if(!p.coll.length){p.owned=false;p.coll=[1];}}});}
+function collArr(p){return Array.isArray(p.coll)?p.coll:[p.coll].filter(Boolean);}
 function loadCaught(){try{return JSON.parse(localStorage.getItem(LS_CAUGHT)||'[]');}catch(e){return[];}}
 function saveCaught(){localStorage.setItem(LS_CAUGHT,JSON.stringify(COLLECTION.filter(p=>p.caught&&!p.owned).map(p=>p.name)));}
 function applyCaught(){const d=loadCaught();COLLECTION.forEach(p=>{if(!p.owned)p.caught=d.includes(p.name);});}
 const LS_MUT='brainrot_mut';
-function mutKey(p){return p.name+'__'+p.coll;}
+function mutKey(p){return p.name;}
 function loadMuts(){try{return JSON.parse(localStorage.getItem(LS_MUT)||'{}');}catch(e){return{};}}
 function saveMuts(){const d={};COLLECTION.forEach(p=>{if(p.mutation&&p.mutation!=='default')d[mutKey(p)]=p.mutation;});localStorage.setItem(LS_MUT,JSON.stringify(d));}
 function applyMuts(){const d=loadMuts();COLLECTION.forEach(p=>{p.mutation=d[mutKey(p)]||'default';});}
@@ -898,7 +902,7 @@ function resetCollection(){
   localStorage.removeItem(LS_KEY);
   localStorage.removeItem(LS_CAUGHT);
   localStorage.removeItem(LS_MUT);
-  COLLECTION.forEach(p=>{p.owned=false;p.caught=false;p.coll=1;p.mutation='default';});
+  COLLECTION.forEach(p=>{p.owned=false;p.caught=false;p.coll=[1];p.mutation='default';});
   updateCounter();rerender();
 }
 
@@ -920,26 +924,35 @@ function patchCard(idx){
   const p=COLLECTION[idx];
   const card=gallery.querySelector(`[data-idx="${idx}"]`);
   if(!card)return;
-  const Co=COLLECTIONS[p.coll]||{};
+  const arr=collArr(p);
+  const Co=COLLECTIONS[arr[0]]||{};
   card.classList.toggle('todo',!p.owned&&!p.caught);
   card.querySelectorAll('.sparkle').forEach(s=>s.remove());
   if(p.owned&&['legendaire','mythique','dieu','secret','og'].includes(p.tier))
     card.querySelector('.stage').insertAdjacentHTML('afterbegin','<span class="sparkle s1">✨</span><span class="sparkle s2">⭐</span>');
   const badges=card.querySelector('.badges');
-  if(badges){const old=badges.querySelector('.acc,.todo-tag,.seen-tag');if(old)old.outerHTML=p.owned?accBadge(p.coll):p.caught?'<span class="seen-tag">👁 Déjà vu</span>':'<span class="todo-tag">⬜ à attraper</span>';}
+  if(badges){
+    badges.querySelectorAll('.acc,.todo-tag,.seen-tag').forEach(el=>el.remove());
+    badges.insertAdjacentHTML('beforeend',p.owned?accBadge(arr):p.caught?'<span class="seen-tag">👁 Déjà vu</span>':'<span class="todo-tag">⬜ à attraper</span>');
+  }
   const cre=card.querySelector('.creature');
   if(cre)cre.style.opacity=(p.owned||p.caught)?'':'.55';
   const btn=card.querySelector('.catch-btn');
   if(btn){
     btn.className='catch-btn'+(p.owned?' owned':'');
-    btn.textContent=p.owned?'✓ '+(Co.name||'?'):'⭐ Mettre dans une base';
+    btn.textContent=p.owned?(arr.length>1?'✓ '+arr.length+' bases':'✓ '+(Co.name||'?')):'⭐ Mettre dans une base';
     if(p.owned&&Co.color)btn.style.setProperty('--c',Co.color);
     else btn.style.removeProperty('--c');
   }
+  const picker=card.querySelector('.coll-picker');
+  if(picker){
+    picker.querySelectorAll('.pick-acc').forEach(b=>{
+      const c=Number(b.getAttribute('onclick').match(/pickColl\(\d+,(\d+)/)[1]);
+      b.classList.toggle('in-coll',p.owned&&arr.includes(c));
+    });
+  }
   const sb=card.querySelector('.seen-btn');
   if(sb){sb.className='seen-btn'+(p.caught?' active':'');sb.textContent=p.caught?'👁 Déjà vu ✓':'👁 Déjà vu';}
-  const picker=card.querySelector('.coll-picker');
-  if(picker)picker.style.display='none';
 }
 window.startPick=function(idx,e){
   e.stopPropagation();
@@ -948,17 +961,23 @@ window.startPick=function(idx,e){
   const picker=card.querySelector('.coll-picker');
   if(picker)picker.style.display=picker.style.display==='none'?'flex':'none';
 };
-window.pickColl=function(idx,coll,e){
+window.pickColl=function(idx,c,e){
   e.stopPropagation();
-  COLLECTION[idx].owned=true;COLLECTION[idx].caught=false;COLLECTION[idx].coll=coll;
+  const p=COLLECTION[idx];
+  const arr=collArr(p);
+  const i=arr.indexOf(Number(c));
+  if(i>=0)arr.splice(i,1); else arr.push(Number(c));
+  if(arr.length===0){p.owned=false;p.coll=[1];}
+  else{p.owned=true;p.caught=false;p.coll=arr;}
   saveOwned();saveCaught();updateCounter();
   if(activeStatus!=='all'){rerender();return;}
   patchCard(idx);
 };
 window.removePick=function(idx,e){
   e.stopPropagation();
-  if(!COLLECTION[idx].owned){const c=gallery.querySelector(`[data-idx="${idx}"] .coll-picker`);if(c)c.style.display='none';return;}
-  COLLECTION[idx].owned=false;
+  const p=COLLECTION[idx];
+  if(!p.owned){const c=gallery.querySelector('[data-idx="'+idx+'"] .coll-picker');if(c)c.style.display='none';return;}
+  p.owned=false;p.coll=[1];
   saveOwned();updateCounter();
   if(activeStatus!=='all'){rerender();return;}
   patchCard(idx);
@@ -995,7 +1014,7 @@ window.toggleCaught=function(idx,e){
 function visible(){
   return COLLECTION.filter(p=>{
     const okTier = activeFilter==='all' || p.tier===activeFilter;
-    const okColl = activeColl==='all' || (p.owned && String(p.coll)===String(activeColl));
+    const okColl = activeColl==='all' || (p.owned && collArr(p).includes(Number(activeColl)));
     const okStatus = activeStatus==='all'
       || (activeStatus==='owned' ? p.owned
         : activeStatus==='todo' ? (!p.owned && !p.caught)
@@ -1016,9 +1035,9 @@ function subjectHTML(p){
   }
   return `<div class="ph">${p.emoji||'🖼️'}</div>`;
 }
-function accBadge(c){
-  const C=COLLECTIONS[c]; if(!C) return '';
-  return `<span class="acc" style="--c:${C.color}">${escape(C.name)}</span>`;
+function accBadge(coll){
+  const arr=Array.isArray(coll)?coll:[coll];
+  return arr.map(c=>{const C=COLLECTIONS[c];return C?'<span class="acc" style="--c:'+C.color+'">'+escape(C.name)+'</span>':''}).join('');
 }
 
 function render(){
@@ -1027,18 +1046,20 @@ function render(){
   gallery.innerHTML = list.map((p,i)=>{
     const t = TIERS[p.tier]||TIERS.commun;
     const idx = COLLECTION.indexOf(p);
-    const Co = COLLECTIONS[p.coll]||{};
+    const arr = collArr(p);
+    const Co = COLLECTIONS[arr[0]]||{};
     const spark = (p.owned && (p.tier==='legendaire'||p.tier==='mythique'||p.tier==='dieu'||p.tier==='secret'||p.tier==='og'))
       ? `<span class="sparkle s1">✨</span><span class="sparkle s2">⭐</span>` : '';
-    const badge = p.owned ? accBadge(p.coll) : p.caught ? `<span class="seen-tag">👁 Déjà vu</span>` : `<span class="todo-tag">⬜ à attraper</span>`;
+    const badge = p.owned ? accBadge(arr) : p.caught ? `<span class="seen-tag">👁 Déjà vu</span>` : `<span class="todo-tag">⬜ à attraper</span>`;
     const M = MUTATIONS[p.mutation||'default']||MUTATIONS.default;
     const mutBadge = (p.owned && p.mutation && p.mutation!=='default') ? `<span class="mut-tag" style="--mc:${M.color}">✦ ${M.label} ×${M.mult}</span>` : '';
     const catchStyle = p.owned && Co.color ? ` style="--c:${Co.color}"` : '';
-    const catchLabel = p.owned ? `✓ ${escape(Co.name||'?')}` : '⭐ Mettre dans une base';
+    const catchLabel = p.owned ? (arr.length>1?`✓ ${arr.length} bases`:`✓ ${escape(Co.name||'?')}`) : '⭐ Mettre dans une base';
     const seenLabel = p.caught ? '👁 Déjà vu ✓' : '👁 Déjà vu';
-    const pickerBtns = Object.entries(COLLECTIONS).map(([n,C])=>
-      `<button class="pick-acc" style="--c:${C.color}" onclick="pickColl(${idx},${n},event)">${escape(C.name)}</button>`
-    ).join('');
+    const pickerBtns = Object.entries(COLLECTIONS).map(([n,C])=>{
+      const act=p.owned&&arr.includes(Number(n))?' in-coll':'';
+      return `<button class="pick-acc${act}" style="--c:${C.color}" onclick="pickColl(${idx},${n},event)">${escape(C.name)}</button>`;
+    }).join('');
     const prixFmt=fmtVal(p.prix), revFmt=fmtVal(p.revenu);
     const vals=(prixFmt||revFmt)?`<div class="card-vals">${
       prixFmt?`<span style="color:${valColor(p.prix)}">💰 ${escape(prixFmt)}</span>`:''
@@ -1065,8 +1086,9 @@ function render(){
       <button class="catch-btn ${p.owned?'owned':''}"${catchStyle} onclick="startPick(${idx},event)">${catchLabel}</button>
       ${!p.owned?`<button class="seen-btn${p.caught?' active':''}" onclick="toggleCaught(${idx},event)">${seenLabel}</button>`:''}
       <div class="coll-picker" style="display:none">
+        <div class="pick-hint">Coche un ou plusieurs comptes 👇</div>
         ${pickerBtns}
-        <button class="pick-remove" onclick="removePick(${idx},event)">🗑 Retirer</button>
+        <button class="pick-remove" onclick="removePick(${idx},event)">🗑 Retirer de partout</button>
       </div>
     </div>`;
   }).join('');
@@ -1094,9 +1116,10 @@ function mutStatHTML(p){
 }
 window.openPiece = function(idx){
   const p=COLLECTION[idx]; const t=TIERS[p.tier]||TIERS.commun;
-  const C=COLLECTIONS[p.coll]||{};
+  const arr=collArr(p);
+  const accNames=arr.map(c=>(COLLECTIONS[c]||{}).name).filter(Boolean).join(', ');
   const descTxt=escape(p.desc||((!p.owned&&!p.caught)?'Pas encore attrapé — à dénicher dans le jeu !':''));
-  const whoTxt=p.owned?'🎮 Compte : '+escape(C.name||'?'):p.caught?'👁 Déjà attrapé, pas dans une base':'⬜ Pas encore attrapé';
+  const whoTxt=p.owned?(arr.length>1?'🎮 Comptes : ':'🎮 Compte : ')+escape(accNames||'?'):p.caught?'👁 Déjà attrapé, pas dans une base':'⬜ Pas encore attrapé';
   modal.innerHTML=
     '<div class="bigcard '+t.cls+'" style="--rc:'+RC[p.tier]+'">'
     +'<button class="close" onclick="closeModal()">\xd7</button>'
