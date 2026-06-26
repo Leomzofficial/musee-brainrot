@@ -873,9 +873,10 @@ function loadCaught(){try{return JSON.parse(localStorage.getItem(LS_CAUGHT)||'[]
 function saveCaught(){localStorage.setItem(LS_CAUGHT,JSON.stringify(COLLECTION.filter(p=>p.caught&&!p.owned).map(p=>p.name)));}
 function applyCaught(){const d=loadCaught();COLLECTION.forEach(p=>{if(!p.owned)p.caught=d.includes(p.name);});}
 const LS_MUT='brainrot_mut';
+function mutKey(p){return p.name+'__'+p.coll;}
 function loadMuts(){try{return JSON.parse(localStorage.getItem(LS_MUT)||'{}');}catch(e){return{};}}
-function saveMuts(){const d={};COLLECTION.forEach(p=>{if(p.mutation&&p.mutation!=='default')d[p.name]=p.mutation;});localStorage.setItem(LS_MUT,JSON.stringify(d));}
-function applyMuts(){const d=loadMuts();COLLECTION.forEach(p=>{p.mutation=d[p.name]||'default';});}
+function saveMuts(){const d={};COLLECTION.forEach(p=>{if(p.mutation&&p.mutation!=='default')d[mutKey(p)]=p.mutation;});localStorage.setItem(LS_MUT,JSON.stringify(d));}
+function applyMuts(){const d=loadMuts();COLLECTION.forEach(p=>{p.mutation=d[mutKey(p)]||'default';});}
 function parseRevenu(v){
   if(!v||v==='?')return null;
   const c=v.replace('$','').replace('/s','').replace(',','.').trim();
@@ -1075,31 +1076,44 @@ function render(){
   }
 }
 
+function mutPickerHTML(idx,p){
+  var cur=p.mutation||'default', html='';
+  Object.entries(MUTATIONS).forEach(function(e){
+    var k=e[0],Mu=e[1];
+    var act=cur===k?' active':'';
+    html+='<button class="mut-btn'+act+'" style="--mc:'+Mu.color+'" onclick="pickMut('+idx+',\''+k+'\')">'+Mu.label+' <span>'+Mu.mult+'x</span></button>';
+  });
+  return '<div class="mut-section"><div class="mut-label">✶ Mutation</div><div class="mut-picker">'+html+'</div></div>';
+}
+function mutStatHTML(p){
+  var Mu=MUTATIONS[p.mutation||'default']||MUTATIONS.default;
+  if(!p.owned||Mu.mult<=1)return'';
+  var n=parseRevenu(p.revenu);
+  if(n===null)return'';
+  return'<div class="stat stat-mut" style="--mc:'+Mu.color+'"><div class="k">⚡ Avec '+Mu.label+'</div><div class="v" style="color:'+Mu.color+'">'+formatRevenu(n*Mu.mult)+'</div></div>';
+}
 window.openPiece = function(idx){
-  const p = COLLECTION[idx]; const t = TIERS[p.tier]||TIERS.commun;
-  const C = COLLECTIONS[p.coll]||{};
-  modal.innerHTML = `
-    <div class="bigcard ${t.cls}" style="--rc:${RC[p.tier]}">
-      <button class="close" onclick="closeModal()">×</button>
-      <div class="bigstage"><div class="halo"></div>${subjectHTML(p)}</div>
-      <div class="bigbody">
-        <h2>${escape(p.name)}</h2>
-        <div class="badges"><span class="tier">${t.label}</span></div>
-        <p class="desc">${escape(p.desc||(!p.owned&&!p.caught?'Pas encore attrapé — à dénicher dans le jeu !':''))}</p>
-        <div class="who">${p.owned?'🎮 Compte : '+escape(C.name||'?'):p.caught?'👁 Déjà attrapé, pas dans une base':'⬜ Pas encore attrapé'}</div>
-        ${p.owned?`<div class="mut-section">
-          <div class="mut-label">✦ Mutation</div>
-          <div class="mut-picker">${Object.entries(MUTATIONS).map(([k,Mu])=>
-            `<button class="mut-btn${(p.mutation||'default')===k?' active':''}" style="--mc:${Mu.color}" onclick="pickMut(${idx},'${k}')">${Mu.label} <span>${Mu.mult}x</span></button>`
-          ).join('')}</div>
-        </div>`:''}
-        <div class="stats">
-          <div class="stat"><div class="k">💰 Prix</div><div class="v">${escape(p.prix||'?')}</div></div>
-          <div class="stat"><div class="k">📈 Revenu/s</div><div class="v">${escape(p.revenu||'?')}</div></div>
-          ${(()=>{const Mu=MUTATIONS[p.mutation||'default']||MUTATIONS.default;const n=parseRevenu(p.revenu);return(p.owned&&Mu.mult>1&&n!==null)?`<div class="stat stat-mut" style="--mc:${Mu.color}"><div class="k">⚡ Avec ${escape(Mu.label)}</div><div class="v" style="color:${Mu.color}">${formatRevenu(n*Mu.mult)}</div></div>`:'';})()}
-        </div>
-      </div>
-    </div>`;
+  const p=COLLECTION[idx]; const t=TIERS[p.tier]||TIERS.commun;
+  const C=COLLECTIONS[p.coll]||{};
+  const descTxt=escape(p.desc||((!p.owned&&!p.caught)?'Pas encore attrapé — à dénicher dans le jeu !':''));
+  const whoTxt=p.owned?'🎮 Compte : '+escape(C.name||'?'):p.caught?'👁 Déjà attrapé, pas dans une base':'⬜ Pas encore attrapé';
+  modal.innerHTML=
+    '<div class="bigcard '+t.cls+'" style="--rc:'+RC[p.tier]+'">'
+    +'<button class="close" onclick="closeModal()">\xd7</button>'
+    +'<div class="bigstage"><div class="halo"></div>'+subjectHTML(p)+'</div>'
+    +'<div class="bigbody">'
+    +'<h2>'+escape(p.name)+'</h2>'
+    +'<div class="badges"><span class="tier">'+t.label+'</span></div>'
+    +'<p class="desc">'+descTxt+'</p>'
+    +'<div class="who">'+whoTxt+'</div>'
+    +(p.owned?mutPickerHTML(idx,p):'')
+    +'<div class="stats">'
+    +'<div class="stat"><div class="k">💰 Prix</div><div class="v">'+escape(p.prix||'?')+'</div></div>'
+    +'<div class="stat"><div class="k">📈 Revenu/s</div><div class="v">'+escape(p.revenu||'?')+'</div></div>'
+    +mutStatHTML(p)
+    +'</div>'
+    +'</div>'
+    +'</div>';
   modal.classList.add('open');
 };
 window.closeModal = ()=>modal.classList.remove('open');
