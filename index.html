@@ -55,11 +55,12 @@ h1{
 
 /* ---------- PAGE D'ACCUEIL : façade plein écran + bouton Entrer ---------- */
 #intro{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;
-  padding:0 24px 6vh;
-  background:linear-gradient(to top, rgba(8,4,22,.72), rgba(8,4,22,0) 48%),
-             url('titre.jpg') center / cover no-repeat;
+  padding:0 24px 6vh;overflow:hidden;
+  background:linear-gradient(to top, rgba(8,4,22,.72), rgba(8,4,22,0) 48%);
   transition:opacity .6s ease}
 #intro.hide{opacity:0;pointer-events:none}
+.intro-bg{position:absolute;inset:0;z-index:-1;width:100%;height:100%}
+.intro-bg img{width:100%;height:100%;object-fit:cover;object-position:center}
 .enter-btn{font-family:'Fredoka';font-weight:700;font-size:clamp(18px,5vw,30px);
   letter-spacing:.08em;color:#3a2400;cursor:pointer;border:none;border-radius:999px;
   padding:16px 56px;background:linear-gradient(90deg,#ffe07a,#ffb01f);
@@ -307,15 +308,6 @@ footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;colo
   .wrap{padding:0 12px}
   header{padding:10px 12px 2px}
   /* page d'accueil */
-  #intro{
-    background-image:linear-gradient(to top, rgba(8,4,22,.78), rgba(8,4,22,0) 30%),
-                     url('titre-mobile.jpg');
-    background-size:cover;
-    background-position:center center;
-    background-repeat:no-repeat;
-    padding-bottom:max(40px, env(safe-area-inset-bottom, 0px));
-    padding-left:24px;padding-right:24px;padding-top:0;
-  }
   .enter-btn{font-size:22px;padding:15px 44px}
   /* controls : barre réduite + filtres masqués par défaut */
   .controls{padding:8px 10px 10px}
@@ -374,6 +366,10 @@ footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;colo
 <div class="bg"></div>
 
 <div id="intro">
+  <picture class="intro-bg">
+    <source media="(max-width:620px)" srcset="titre-mobile.jpg">
+    <img src="titre.jpg" alt="" aria-hidden="true">
+  </picture>
   <button class="enter-btn" id="enterBtn">ENTRER ▸</button>
 </div>
 
