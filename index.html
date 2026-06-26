@@ -98,6 +98,8 @@ h1{
 /* compteur de complétion + statut attrapé/à attraper */
 .completion{display:flex;flex-direction:column;align-items:center;gap:6px;margin:0 auto 12px;max-width:520px}
 .comp-text{font-family:'Fredoka';font-weight:600;font-size:15px;color:#fff}
+.reset-btn{font-family:'Fredoka';font-weight:600;font-size:11.5px;padding:3px 10px;border-radius:20px;border:1px solid rgba(255,120,120,.4);background:rgba(255,80,80,.1);color:#ff9999;cursor:pointer;transition:background .15s}
+.reset-btn:hover{background:rgba(255,80,80,.25)}
 .comp-bar{width:100%;height:10px;border-radius:999px;background:rgba(255,255,255,.18);overflow:hidden}
 .comp-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#ffd84d,#ff9a5a);transition:width .4s}
 .controls-status{margin-top:4px;gap:8px}
@@ -281,7 +283,10 @@ footer{position:relative;z-index:1;text-align:center;padding:20px 18px 46px;colo
 
 <div class="wrap">
   <div class="completion">
-    <div class="comp-text" id="compText">0 / 0 attrapés</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="comp-text" id="compText">0 / 0 attrapés</div>
+      <button class="reset-btn" onclick="resetCollection()">🗑 Vider</button>
+    </div>
     <div class="comp-bar"><div class="comp-fill" id="compFill" style="width:0%"></div></div>
   </div>
 </div>
@@ -737,9 +742,21 @@ let COLLECTION = [
 ];
 
 const LS_KEY = 'brainrot_owned';
+const LS_VER = 'brainrot_ver';
+// Si la version enregistrée est différente, on repart de zéro
+if(localStorage.getItem(LS_VER) !== '2') {
+  localStorage.removeItem(LS_KEY);
+  localStorage.setItem(LS_VER, '2');
+}
 function loadOwned(){try{return JSON.parse(localStorage.getItem(LS_KEY)||'{}');}catch(e){return {};}}
 function saveOwned(){const d={};COLLECTION.forEach(p=>{if(p.owned)d[p.name]=p.coll;});localStorage.setItem(LS_KEY,JSON.stringify(d));}
 function applyOwned(){const d=loadOwned();COLLECTION.forEach(p=>{const v=d[p.name];if(v){p.owned=true;if(v>=1&&v<=5)p.coll=v;}});}
+function resetCollection(){
+  if(!confirm('Vider toute la collection ? Cette action est irréversible.'))return;
+  localStorage.removeItem(LS_KEY);
+  COLLECTION.forEach(p=>{p.owned=false;p.coll=1;});
+  updateCounter();rerender();
+}
 
 const gallery = document.getElementById('gallery');
 const compText = document.getElementById('compText');
